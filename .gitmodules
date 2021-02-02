@@ -1,0 +1,3 @@
+[submodule "util"]
+	path = util
+	url = https://github.com/MeAndUnique/FG-Util.git
