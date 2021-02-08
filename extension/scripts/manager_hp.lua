@@ -283,7 +283,7 @@ end
 
 -- Utility
 function getConAdjustment(nodeChar)
-	local nMod, _ = ActorManager2.getAbilityEffectsBonus(nodeChar, "constitution")
+	local nMod, _ = ActorManager5E.getAbilityEffectsBonus(nodeChar, "constitution")
 	local nLevels = getTotalLevel(nodeChar);
 	return nMod * nLevels;
 end
