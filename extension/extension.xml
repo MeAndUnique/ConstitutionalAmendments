@@ -2,7 +2,7 @@
 <root release="3.0" version="3">
 	<properties>
 		<name>5E - Constitutional Amendments</name>
-		<version>1.3.3</version>
+		<version>1.3.4</version>
 		<loadorder>50</loadorder>
 		<author>MeAndUnique-and-Tielc-and-Zuilin</author>
 		<description>Adds a number of quality of life features concerning HP.</description>
