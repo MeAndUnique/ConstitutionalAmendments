@@ -20,7 +20,7 @@ function onInit()
 	OOBManager.registerOOBMsgHandler(OOB_MSGTYPE_ROLLHP, handleRollHp);
 	ActionsManager.registerResultHandler("hp", onHpRoll);
 
-	if User.isHost() then
+	if Session.isHost then
 		for _,node in pairs(DB.getChildren("charsheet")) do
 			firstTimeSetup(node);
 		end
@@ -283,7 +283,7 @@ end
 
 -- Utility
 function getConAdjustment(nodeChar)
-	local nMod, _ = ActorManager2.getAbilityEffectsBonus(nodeChar, "constitution")
+	local nMod, _ = ActorManager5E.getAbilityEffectsBonus(nodeChar, "constitution")
 	local nLevels = getTotalLevel(nodeChar);
 	return nMod * nLevels;
 end
@@ -356,7 +356,7 @@ end
 function notifyRollHp(nodeClass, nClassLevel, aDice)
 	local messageOOB = {type=OOB_MSGTYPE_ROLLHP, sClass=nodeClass.getPath(), sLevel=tostring(nClassLevel)};
 	
-	if User.isHost() then
+	if Session.isHost then
 		local sOwner = DB.getOwner(nodeClass);
 		if sOwner ~= "" then
 			for _,vUser in ipairs(User.getActiveUsers()) do
