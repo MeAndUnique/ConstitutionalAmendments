@@ -39,7 +39,7 @@ function onClose()
 end
 
 function onDrop(x, y, draginfo)
-	if Session.isHost then
+	if Session.IsHost then
 		if draginfo.getType() == "number" then
 			local node = window.getDatabaseNode();
 			local rActor = ActorManager.getActorFromCT(node);
