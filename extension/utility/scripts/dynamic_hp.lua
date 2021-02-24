@@ -105,11 +105,12 @@ function onValueChanged()
 		local nCurrent = getValue();
 		nWounds = nTotal - nCurrent;
 	end
-	DB.setValue(sWounds, "number", nWounds);
 
 	if sLink then
 		DB.setValue(sLink, "number", nWounds);
 	end
+	
+	DB.setValue(sWounds, "number", nWounds);
 	
 	update();
 	bUpdating = false;
