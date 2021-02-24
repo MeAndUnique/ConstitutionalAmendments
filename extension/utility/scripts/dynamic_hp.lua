@@ -39,7 +39,7 @@ function onClose()
 end
 
 function onDrop(x, y, draginfo)
-	if Session.isHost then
+	if Session.IsHost then
 		if draginfo.getType() == "number" then
 			local node = window.getDatabaseNode();
 			local rActor = ActorManager.getActorFromCT(node);
@@ -105,11 +105,12 @@ function onValueChanged()
 		local nCurrent = getValue();
 		nWounds = nTotal - nCurrent;
 	end
-	DB.setValue(sWounds, "number", nWounds);
 
 	if sLink then
 		DB.setValue(sLink, "number", nWounds);
 	end
+	
+	DB.setValue(sWounds, "number", nWounds);
 	
 	update();
 	bUpdating = false;
