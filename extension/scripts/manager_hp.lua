@@ -180,8 +180,9 @@ function onHpRoll(rSource, rTarget, rRoll)
 				DB.setValue(nodeClass, getRollNodePath(nLevel), "number", nResult);
 
 				local nConBonus = DB.getValue(nodeChar, "abilities.constitution.bonus", 0);
-				local nMiscBonus = getMiscHpBonus(nodeChar);
-				messageHP(rSource, nResult, nConBonus, nMiscBonus);
+				local nMiscCharBonus = getMiscellaneousCharacterHpBonus(nodeChar);
+				local nMiscClassBonus = getMiscellaneousClassHpBonus(nodeChar, nodeClass);
+				messageHP(rSource, nResult, nConBonus, nMiscCharBonus + nMiscClassBonus);
 				recalculateBase(nodeChar);
 			end
 		end
@@ -204,13 +205,14 @@ function firstTimeSetup(nodeChar)
 		local nTotal = DB.getValue(nodeChar, "hp.total", 0)
 		if nTotal > 0 then
 			local nConBonus = DB.getValue(nodeChar, "abilities.constitution.bonus", 0);
-			local nMiscBonus = getMiscHpBonus(nodeChar);
+			local nMiscCharBonus = getMiscellaneousCharacterHpBonus(nodeChar);
 
 			local nCalculated = 0;
 			for _,nodeClass in pairs(DB.getChildren(nodeChar, "classes")) do
 				local nHDMult, nHDSides = getHdInfo(nodeClass);
 				if nHDMult > 0 then
 					local nLevel = DB.getValue(nodeClass, "level", 0);
+					local nMiscClassBonus = getMiscellaneousClassHpBonus(nodeChar, nodeClass);
 					for i=1,nLevel do
 						local nValue = 0;
 						if nCalculated == 0 then
@@ -219,7 +221,7 @@ function firstTimeSetup(nodeChar)
 							nValue = getAverageHp(nHDMult, nHDSides);
 						end
 						DB.setValue(nodeClass, getRollNodePath(i), "number", nValue);
-						nCalculated = nCalculated + math.max(1, nValue + nConBonus) + nMiscBonus;
+						nCalculated = nCalculated + math.max(1, nValue + nConBonus) + nMiscCharBonus + nMiscClassBonus;
 					end
 				end
 			end
@@ -268,11 +270,12 @@ end
 
 function recalculateBase(nodeChar)
 	local nConBonus = DB.getValue(nodeChar, "abilities.constitution.bonus", 0);
-	local nMiscBonus = getMiscHpBonus(nodeChar);
+	local nMiscCharBonus = getMiscellaneousCharacterHpBonus(nodeChar);
 	local nSum = DB.getValue(nodeChar, "hp.discrepancy", 0);
 	for _,nodeClass in pairs(DB.getChildren(nodeChar, "classes")) do
+		local nMiscClassBonus = getMiscellaneousClassHpBonus(nodeChar, nodeClass);
 		for _,nodeRoll in pairs(DB.getChildren(nodeClass, "rolls")) do
-			nSum = nSum + math.max(1, nodeRoll.getValue() + nConBonus) + nMiscBonus;
+			nSum = nSum + math.max(1, nodeRoll.getValue() + nConBonus) + nMiscCharBonus + nMiscClassBonus;
 		end
 	end
 
@@ -299,17 +302,24 @@ function getTotalLevel(nodeChar)
 	return nTotal;
 end
 
-function getMiscHpBonus(nodeChar)
+function getMiscellaneousCharacterHpBonus(nodeChar)
 	-- TODO add extensibility point for HP modifiers
 	local nMiscBonus = 0;
 	if CharManager.hasTrait(nodeChar, CharManager.TRAIT_DWARVEN_TOUGHNESS) then
 		nMiscBonus = 1;
 	end
-	if CharManager.hasFeature(nodeChar, CharManager.FEATURE_DRACONIC_RESILIENCE) then
-		nMiscBonus = nMiscBonus + 1;
-	end
 	if CharManager.hasFeat(nodeChar, CharManager.FEAT_TOUGH) then
 		nMiscBonus = nMiscBonus + 2
+	end
+	return nMiscBonus;
+end
+
+function getMiscellaneousClassHpBonus(nodeChar, nodeClass)
+	-- TODO add extensibility point for HP modifiers
+	local nMiscBonus = 0;
+	local sClassNameLower = StringManager.trim(DB.getValue(nodeClass, "name", "")):lower();
+	if (sClassNameLower == CharManager.CLASS_SORCERER) and CharManager.hasFeature(nodeChar, CharManager.FEATURE_DRACONIC_RESILIENCE) then
+		nMiscBonus = nMiscBonus + 1;
 	end
 	return nMiscBonus;
 end
