@@ -9,9 +9,10 @@ local addInfoDBOriginal;
 local resetHealthOriginal;
 local addPcOriginal;
 local addPregenCharOriginal;
+local onImportFileSelectionOriginal;
 
-local bAddingPregen = false;
-local nodeAddedPregenChar;
+local bAddingCharacter = false;
+local nodeAddedCharacter;
 
 local bAddingInfo = false;
 local bAddingUnconscious = false;
@@ -36,6 +37,9 @@ function onInit()
 
 		addPregenCharOriginal = CampaignDataManager2.addPregenChar;
 		CampaignDataManager2.addPregenChar = addPregenChar;
+
+		onImportFileSelectionOriginal = CampaignDataManager.onImportFileSelection;
+		CampaignDataManager.onImportFileSelection = onImportFileSelection;
 
 		DB.addHandler("charsheet", "onChildAdded", onCharAdded);
 		DB.addHandler("charsheet.*.classes", "onChildDeleted", onClassDeleted);
@@ -79,19 +83,32 @@ function addPC(nodePC)
 end
 
 function addPregenChar(nodeSource)
-	bAddingPregen = true;
+	Debug.chat("pregen called");
+	bAddingCharacter = true;
 	addPregenCharOriginal(nodeSource);
-	if nodeAddedPregenChar then
-		firstTimeSetup(nodeAddedPregenChar);
-		nodeAddedPregenChar = nil;
+	if nodeAddedCharacter then
+		firstTimeSetup(nodeAddedCharacter);
+		nodeAddedCharacter = nil;
 	end
-	bAddingPregen = false;
+	bAddingCharacter = false;
+end
+
+function onImportFileSelection(result, vPath)
+	Debug.chat("import called");
+	bAddingCharacter = true;
+	onImportFileSelectionOriginal(result, vPath);
+	if nodeAddedCharacter then
+		firstTimeSetup(nodeAddedCharacter);
+		nodeAddedCharacter = nil;
+	end
+	bAddingCharacter = false;
 end
 
 -- Event Handlers
 function onCharAdded(nodeParent, nodeChar)
-	if bAddingPregen then
-		nodeAddedPregenChar = nodeChar;
+	Debug.chat("char added");
+	if bAddingCharacter then
+		nodeAddedCharacter = nodeChar;
 	end
 end
 
