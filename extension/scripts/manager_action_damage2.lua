@@ -3,6 +3,7 @@
 -- attribution and copyright information.
 --
 
+local applyDamageOriginal;
 local decodeDamageTextOriginal;
 local messageDamageOriginal;
 
@@ -20,6 +21,9 @@ function onInit()
 	table.insert(DataCommon.specialdmgtypes, "stealtemp");
 	table.insert(DataCommon.specialdmgtypes, "hstealtemp");
 
+	applyDamageOriginal = ActionDamage.applyDamage;
+	ActionDamage.applyDamage = applyDamage;
+
 	decodeDamageTextOriginal = ActionDamage.decodeDamageText;
 	ActionDamage.decodeDamageText = decodeDamageText;
 
@@ -27,10 +31,38 @@ function onInit()
 	ActionDamage.messageDamage = messageDamage;
 end
 
+function applyDamage(rSource, rTarget, bSecret, sDamage, nTotal)
+	decodeDamageText(nTotal, sDamage);
+
+	local bSwapped = false;
+	if decodeResult and decodeResult.sType == "damage" then
+		for sTypes,nDamage in pairs(decodeResult.aDamageTypes) do
+			local aTemp = StringManager.split(sTypes, ",", true);
+			for _,type in ipairs(aTemp) do
+				if type == "transfer" then
+					local rSwap = rTarget;
+					rTarget = rSource;
+					rSource = rSwap;
+					bSwapped = true;
+					break;
+				end
+			end
+
+			if bSwapped then
+				break;
+			end
+		end
+	end
+
+	return applyDamageOriginal(rSource, rTarget, bSecret, sDamage, nTotal);
+end
+
 function decodeDamageText(nDamage, sDamageDesc)
-	decodeResult = decodeDamageTextOriginal(nDamage, sDamageDesc);
-	if string.match(sDamageDesc, "%[HEAL") and string.match(sDamageDesc, "%[MAX%]") then
-		decodeResult.sTypeOutput = "Maximum hit points";
+	if not decodeResult then
+		decodeResult = decodeDamageTextOriginal(nDamage, sDamageDesc);
+		if string.match(sDamageDesc, "%[HEAL") and string.match(sDamageDesc, "%[MAX%]") then
+			decodeResult.sTypeOutput = "Maximum hit points";
+		end
 	end
 	return decodeResult;
 end

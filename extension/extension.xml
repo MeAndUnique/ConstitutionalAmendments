@@ -15,16 +15,22 @@
 	<base>
 		<!-- XML file containing new strings -->
 		<includefile source="strings/strings.xml" />
+		<!-- XML file containing new icons -->
+		<includefile source="graphics/icons.xml" />
 
 		<script name="OptionsHp" file="scripts/data_options_hp.lua"/>
 		<script name="DataSpell2" file="scripts/data_spell2.lua"/>
 		<script name="HpManager" file="scripts/manager_hp.lua"/>
-		<script name="PowerManager2" file="scripts/manager_power2.lua"/>
+		<script name="PowerManagerCA" file="scripts/manager_power_ca.lua"/>
 		<script name="ActionDamage2" file="scripts/manager_action_damage2.lua"/>
 		<script name="ActionHeal2" file="scripts/manager_action_heal2.lua"/>
+		<script name="ActionTransfer" file="scripts/manager_action_transfer.lua"/>
 
 		<!-- updates the character sheet to add support for max PC HP adjustments as well as toggling between wounds and current HP -->
 		<includefile source="campaign/record_char_main.xml" />
+
+		<!-- adds new Transfer action type -->
+		<includefile source="campaign/record_power.xml" />
 
 		<!-- updates the heal power window to support increasing max HP -->
 		<includefile source="campaign/record_power_roll.xml" />
@@ -40,8 +46,6 @@
 
 		<!-- adds templates for smart fields that support fine-grained update handling -->
 		<includefile source ="smart_fields/smart_field.xml" />
-
-		<icon name="CA_icon" file="icons/ConstitutionalAmendments.png" />
 	</base>
 
 	<announcement text="Constitutional Amendments v1.3.8 for 5E by MeAndUnique.\r\nCurrent HP functionality designed and implemented by Tielc; FGU fixes by Zuilin." icon="CA_icon" font="emotefont" />

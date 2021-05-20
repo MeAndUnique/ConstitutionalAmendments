@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+	<icon name="CA_icon" file="graphics/icons/ConstitutionalAmendments.png" />
+
+	<icon name="radial_transfer" file="graphics/radial/icon_effect.png" />
+</root>

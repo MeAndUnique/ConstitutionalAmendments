@@ -83,7 +83,6 @@ function addPC(nodePC)
 end
 
 function addPregenChar(nodeSource)
-	Debug.chat("pregen called");
 	bAddingCharacter = true;
 	addPregenCharOriginal(nodeSource);
 	if nodeAddedCharacter then
@@ -94,7 +93,6 @@ function addPregenChar(nodeSource)
 end
 
 function onImportFileSelection(result, vPath)
-	Debug.chat("import called");
 	bAddingCharacter = true;
 	onImportFileSelectionOriginal(result, vPath);
 	if nodeAddedCharacter then
@@ -106,7 +104,6 @@ end
 
 -- Event Handlers
 function onCharAdded(nodeParent, nodeChar)
-	Debug.chat("char added");
 	if bAddingCharacter then
 		nodeAddedCharacter = nodeChar;
 	end
