@@ -45,43 +45,43 @@ function getRoll(rActor, rAction)
 	rRoll.sType = "transfer";
 	rRoll.aDice = {};
 	rRoll.nMod = 0;
+	rRoll.bWeapon = rAction.bWeapon;
 	
-	-- Build description
-	rRoll.sDesc = "[HEAL";
+	rRoll.sDesc = "[TRANSFER";
 	if rAction.order and rAction.order > 1 then
 		rRoll.sDesc = rRoll.sDesc .. " #" .. rAction.order;
 	end
 	rRoll.sDesc = rRoll.sDesc .. "] " .. rAction.label;
-
-	-- Save the heal clauses in the roll structure
+	
+	-- Save the damage properties in the roll structure
 	rRoll.clauses = rAction.clauses;
 	
-	-- Add the dice and modifiers, and encode ability scores used
-	for _,vClause in pairs(rRoll.clauses) do
+	-- Add the dice and modifiers
+	for _,vClause in ipairs(rRoll.clauses) do
 		for _,vDie in ipairs(vClause.dice) do
 			table.insert(rRoll.aDice, vDie);
 		end
 		rRoll.nMod = rRoll.nMod + vClause.modifier;
-		local sAbility = DataCommon.ability_ltos[vClause.stat];
-		if sAbility then
-			rRoll.sDesc = rRoll.sDesc .. string.format(" [MOD: %s (%s)]", sAbility, vClause.statmult or 1);
-		end
 	end
 	
 	-- Encode the damage types
-	encodeHealClauses(rRoll);
-
-	-- Handle temporary hit points
-	if rAction.subtype == "temp" then
-		rRoll.sDesc = rRoll.sDesc .. " [TEMP]";
-	end
-
-	-- Handle self-targeting
-	if rAction.sTargeting == "self" then
-		rRoll.bSelfTarget = true;
-	end
-
+	encodeTransferTypes(rRoll);
+	
 	return rRoll;
+end
+
+function encodeTransferTypes(rRoll)
+	for _,vClause in ipairs(rRoll.clauses) do
+		if vClause.dmgtype and vClause.dmgtype ~= "" then
+			local sDice = StringManager.convertDiceToString(vClause.dice, vClause.modifier);
+			rRoll.sDesc = rRoll.sDesc .. string.format(" [TYPE: %s (%s)(%s)(%s)@%d]",
+				vClause.dmgtype,
+				sDice,
+				vClause.stat or "",
+				vClause.statmult or 1,
+				vClause.ration);
+		end
+	end
 end
 
 function onTransfer(rSource, rTarget, rRoll)

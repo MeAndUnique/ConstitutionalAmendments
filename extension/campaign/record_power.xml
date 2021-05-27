@@ -39,6 +39,15 @@
 				onDataChanged();
 			end
 
+			function onClose()
+				if super and super.onClose then
+					super.onClose();
+				end
+
+				local sNode = getDatabaseNode().getPath();
+				DB.removeHandler(sNode, "onChildUpdate", onDataChanged);
+			end
+
 			function updateDisplay()
 				if super and super.updateDisplay then
 					super.updateDisplay();
@@ -55,6 +64,10 @@
 			end
 
 			function onDataChanged()
+				if super and super.onDataChanged then
+					super.onDataChanged();
+				end
+
 				local sType = DB.getValue(getDatabaseNode(), "type", "");
 				if sType == "transfer" then
 					onTransferChanged();
