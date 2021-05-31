@@ -83,7 +83,6 @@ function addPC(nodePC)
 end
 
 function addPregenChar(nodeSource)
-	Debug.chat("pregen called");
 	bAddingCharacter = true;
 	addPregenCharOriginal(nodeSource);
 	if nodeAddedCharacter then
@@ -94,7 +93,6 @@ function addPregenChar(nodeSource)
 end
 
 function onImportFileSelection(result, vPath)
-	Debug.chat("import called");
 	bAddingCharacter = true;
 	onImportFileSelectionOriginal(result, vPath);
 	if nodeAddedCharacter then
@@ -106,7 +104,6 @@ end
 
 -- Event Handlers
 function onCharAdded(nodeParent, nodeChar)
-	Debug.chat("char added");
 	if bAddingCharacter then
 		nodeAddedCharacter = nodeChar;
 	end
@@ -186,7 +183,10 @@ function onCombatantEffectUpdated(nodeEffectList)
 end
 
 function onHpRoll(rSource, rTarget, rRoll)
-	local nodeChar = DB.findNode(rSource.sCreatureNode);
+	local nodeChar = rSource;
+	if type(nodeChar) ~= "databasenode" then
+		nodeChar = DB.findNode(rSource.sCreatureNode);
+	end
 	if nodeChar then
 		local nodeClass = nodeChar.getChild("classes." .. rRoll.sClass);
 		if nodeClass then
@@ -210,7 +210,7 @@ function handleRollHp(msgOOB)
 	local nodeClass = DB.findNode(msgOOB.sClass);
 	if nodeClass then
 		local aDice = DB.getValue(nodeClass, "hddie");
-		local hpRoll = {sType="hp", aDice=aDice, sClass=nodeClass.getName(), sLevel=msgOOB.sLevel};
+		local hpRoll = {sType="hp", aDice=aDice, sClass=nodeClass.getName(), sLevel=msgOOB.sLevel, nMod=0};
 		ActionsManager.roll(nodeClass.getChild("..."), nil, hpRoll, false);
 	end
 end

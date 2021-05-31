@@ -2,7 +2,7 @@
 <root release="3.0" version="3">
 	<properties>
 		<name>5E - Constitutional Amendments</name>
-		<version>1.3.8</version>
+		<version>1.3.9</version>
 		<loadorder>150</loadorder>
 		<author>MeAndUnique-and-Tielc-and-Zuilin</author>
 		<description>Adds a number of quality of life features concerning HP.</description>
@@ -44,6 +44,6 @@
 		<icon name="CA_icon" file="icons/ConstitutionalAmendments.png" />
 	</base>
 
-	<announcement text="Constitutional Amendments v1.3.8 for 5E by MeAndUnique.\r\nCurrent HP functionality designed and implemented by Tielc; FGU fixes by Zuilin." icon="CA_icon" font="emotefont" />
+	<announcement text="Constitutional Amendments v1.3.9 for 5E by MeAndUnique.\r\nCurrent HP functionality designed and implemented by Tielc; FGU fixes by Zuilin." icon="CA_icon" font="emotefont" />
 
 </root>
