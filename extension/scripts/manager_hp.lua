@@ -84,12 +84,12 @@ end
 
 function addPregenChar(nodeSource)
 	bAddingCharacter = true;
-	addPregenCharOriginal(nodeSource);
-	if nodeAddedCharacter then
-		firstTimeSetup(nodeAddedCharacter);
-		nodeAddedCharacter = nil;
+	local nodeCharacter = addPregenCharOriginal(nodeSource);
+	if nodeCharacter then
+		firstTimeSetup(nodeCharacter);
 	end
 	bAddingCharacter = false;
+	return nodeAddedCharacter;
 end
 
 function onImportFileSelection(result, vPath)
@@ -100,6 +100,7 @@ function onImportFileSelection(result, vPath)
 		nodeAddedCharacter = nil;
 	end
 	bAddingCharacter = false;
+	return nodeAddedCharacter;
 end
 
 -- Event Handlers
@@ -116,6 +117,10 @@ function onClassDeleted(nodeClasses)
 end
 
 function onLevelChanged(nodeLevel)
+	if bAddingCharacter then
+		return;
+	end
+
 	local nOffset = -1;
 	local nodeClass = nodeLevel.getParent();
 	local nodeChar = nodeClass.getChild("...");
