@@ -84,12 +84,12 @@ end
 
 function addPregenChar(nodeSource)
 	bAddingCharacter = true;
-	addPregenCharOriginal(nodeSource);
-	if nodeAddedCharacter then
-		firstTimeSetup(nodeAddedCharacter);
-		nodeAddedCharacter = nil;
+	local nodeCharacter = addPregenCharOriginal(nodeSource);
+	if nodeCharacter then
+		firstTimeSetup(nodeCharacter);
 	end
 	bAddingCharacter = false;
+	return nodeAddedCharacter;
 end
 
 function onImportFileSelection(result, vPath)
@@ -100,6 +100,7 @@ function onImportFileSelection(result, vPath)
 		nodeAddedCharacter = nil;
 	end
 	bAddingCharacter = false;
+	return nodeAddedCharacter;
 end
 
 -- Event Handlers
@@ -116,6 +117,10 @@ function onClassDeleted(nodeClasses)
 end
 
 function onLevelChanged(nodeLevel)
+	if bAddingCharacter then
+		return;
+	end
+
 	local nOffset = -1;
 	local nodeClass = nodeLevel.getParent();
 	local nodeChar = nodeClass.getChild("...");
@@ -183,7 +188,10 @@ function onCombatantEffectUpdated(nodeEffectList)
 end
 
 function onHpRoll(rSource, rTarget, rRoll)
-	local nodeChar = DB.findNode(rSource.sCreatureNode);
+	local nodeChar = rSource;
+	if type(nodeChar) ~= "databasenode" then
+		nodeChar = DB.findNode(rSource.sCreatureNode);
+	end
 	if nodeChar then
 		local nodeClass = nodeChar.getChild("classes." .. rRoll.sClass);
 		if nodeClass then
@@ -207,7 +215,7 @@ function handleRollHp(msgOOB)
 	local nodeClass = DB.findNode(msgOOB.sClass);
 	if nodeClass then
 		local aDice = DB.getValue(nodeClass, "hddie");
-		local hpRoll = {sType="hp", aDice=aDice, sClass=nodeClass.getName(), sLevel=msgOOB.sLevel};
+		local hpRoll = {sType="hp", aDice=aDice, sClass=nodeClass.getName(), sLevel=msgOOB.sLevel, nMod=0};
 		ActionsManager.roll(nodeClass.getChild("..."), nil, hpRoll, false);
 	end
 end
