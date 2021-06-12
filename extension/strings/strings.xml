@@ -21,12 +21,4 @@
 
 	<string name="power_label_healtypecur">CUR</string>
 	<string name="power_label_healtypemax">MAX</string>
-
-	<string name="power_label_tfr">Tfr</string>
-	
-	<string name="power_menu_addtransfer">Add Transfer</string>
-
-	<string name="power_title_transfer">Spell/Ability Transfer</string>
-	<string name="power_header_transfer">TRANSFER</string>
-	<string name="transfer_label_ratio">Ratio</string>
 </root>

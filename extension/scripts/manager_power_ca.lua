@@ -83,7 +83,7 @@ function performAction(draginfo, rActor, rAction, nodePower)
 	
 	if rAction.type == "transfer" then
 		rAction.type = "damage"; --avoid duplicating eval logic
-		PowerManager.evalAction(rActor, nodeAction.getChild("..."), rAction);
+		PowerManager.evalAction(rActor, nodePower.getChild("..."), rAction);
 		rAction.type = "transfer"; --put it back the way it was
 
 		local rRolls = {};
@@ -94,6 +94,6 @@ function performAction(draginfo, rActor, rAction, nodePower)
 		end
 	return true;
 	else
-		return performActionOriginal(draginfo, nodeAction, sSubRoll);
+		return performActionOriginal(draginfo, rActor, rAction, nodePower);
 	end
 end
