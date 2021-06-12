@@ -8,12 +8,19 @@
 
 * Added a Heal action type to increase maximum HP.
 
-* 5 new damage types have been added:
+* 6 new damage types have been added:
   * max: The target's maximum hitpoints are reduced by the damage dealt.
-  * steal: The attacker is healed for the damage dealt to the target.
+  * steal*: The attacker is healed for the damage dealt to the target.
   * hsteal: The attacker is healed for half of the damage dealt to the target.
-  * stealtemp: The attacker is gains temporary hitpoints equivalent to the damage dealt.
+  * stealtemp*: The attacker is gains temporary hitpoints equivalent to the damage dealt.
   * hstealtemp: The attacker is gains temporary hitpoints equivalent to half of the damage dealt.
+  * transfer*: The damage is dealt to the attacker and the target is healed by the damage taken.
+  * *If one of these damage types is followed by a [n] damage type, where n is any positive number, the secondary effect is scaled by n. E.g. steal, [0.5] is identical to hsteal.
+
+* 2 new effects have been added: SHAREDMG: n, and SHAREHEAL: n, where n is any number.
+  * Any damage or healing, respectively, that is recieved by a creature with one of these effects will be shared with another creature, in proportion with n.
+  * When the effect is targeted, the target of the effect will receive the shared damage or healing.
+  * Then the effect is not targeted, the applier of the effect will receive the shared damage or healing.
 
 ![Preview](images/ConstitutionalAmendments.png)
 
