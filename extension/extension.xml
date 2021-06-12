@@ -19,11 +19,11 @@
 		<includefile source="graphics/icons.xml" />
 
 		<script name="OptionsHp" file="scripts/data_options_hp.lua"/>
-		<script name="DataSpell2" file="scripts/data_spell2.lua"/>
+		<script name="DataSpell2" file="scripts/data_spell_ca.lua"/>
 		<script name="HpManager" file="scripts/manager_hp.lua"/>
 		<script name="PowerManagerCA" file="scripts/manager_power_ca.lua"/>
-		<script name="ActionDamage2" file="scripts/manager_action_damage2.lua"/>
-		<script name="ActionHeal2" file="scripts/manager_action_heal2.lua"/>
+		<script name="ActionDamage2" file="scripts/manager_action_damage_ca.lua"/>
+		<script name="ActionHeal2" file="scripts/manager_action_heal_ca.lua"/>
 
 		<!-- updates the character sheet to add support for max PC HP adjustments as well as toggling between wounds and current HP -->
 		<includefile source="campaign/record_char_main.xml" />
