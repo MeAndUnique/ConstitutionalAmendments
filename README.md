@@ -28,3 +28,11 @@
 Download [ConstitutionalAmendments.ext](https://github.com/MeAndUnique/ConstitutionalAmendments/raw/main/ConstitutionalAmendments.ext) and place in the extensions subfolder of the Fantasy Grounds data folder.
 
 NOTE: Upon first loading, this extension will attempt to resolve each PC's current total hitpoints into individual rolls. If there is a discrepency detected a notification will be given upon opening the character sheet.
+
+## Attribution
+SmiteWorks owns rights to code sections copied from their rulesets by permission for Fantasy Grounds community development.
+'Fantasy Grounds' is a trademark of SmiteWorks USA, LLC.
+'Fantasy Grounds' is Copyright 2004-2021 SmiteWorks USA LLC.
+
+<div>Icons made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+<div>Icons made by <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
