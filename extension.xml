@@ -69,7 +69,7 @@ Icons made by Smashicons from www.flaticon.com
 		<includefile source ="utility/template_hp.xml" />
 
 		<!-- adds templates for smart fields that support fine-grained update handling -->
-		<includefile source ="smart_fields/smart_field.xml" />
+		<includefile source ="utility/smart_field.xml" />
 	</base>
 
 	<announcement text="Constitutional Amendments v2.0.1 for 5E by MeAndUnique.\r\nCurrent HP functionality designed and implemented by Tielc; FGU fixes by Zuilin." icon="CA_icon" font="emotefont" />
