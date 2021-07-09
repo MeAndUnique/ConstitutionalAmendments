@@ -22,7 +22,7 @@
   * When the effect is targeted, the target of the effect will receive the shared damage or healing.
   * Then the effect is not targeted, the applier of the effect will receive the shared damage or healing.
 
-![Preview](images/ConstitutionalAmendments.png)
+![Preview](.resources/ConstitutionalAmendments.png)
 
 ## Installation
 Download [ConstitutionalAmendments.ext](https://github.com/MeAndUnique/ConstitutionalAmendments/raw/main/ConstitutionalAmendments.ext) and place in the extensions subfolder of the Fantasy Grounds data folder.
