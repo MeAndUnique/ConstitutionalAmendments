@@ -1,11 +1,12 @@
 -- 
--- Please see the license.html file included with this distribution for 
+-- Please see the license file included with this distribution for 
 -- attribution and copyright information.
 --
 
 local getPCPowerActionOriginal;
 local getPCPowerHealActionTextOriginal;
 local performActionOriginal;
+local parseDamagePhraseOriginal;
 
 function onInit()
 	getPCPowerActionOriginal = PowerManager.getPCPowerAction;
@@ -16,6 +17,9 @@ function onInit()
 
 	performActionOriginal = PowerManager.performAction;
 	PowerManager.performAction = performAction;
+
+	parseDamagePhraseOriginal = PowerManager.parseDamagePhrase;
+	PowerManager.parseDamagePhrase = parseDamagePhrase;
 end
 
 function  getPCPowerAction(nodeAction, sSubRoll)
@@ -96,4 +100,11 @@ function performAction(draginfo, rActor, rAction, nodePower)
 	else
 		return performActionOriginal(draginfo, rActor, rAction, nodePower);
 	end
+end
+
+function parseDamagePhrase(aWords, i)
+	StringManagerCA.beginContainsPattern();
+	local result = {parseDamagePhraseOriginal(aWords, i)};
+	StringManagerCA.endContainsPattern();
+	return unpack(result);
 end

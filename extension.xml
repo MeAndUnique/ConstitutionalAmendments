@@ -52,6 +52,7 @@ Icons made by Smashicons from www.flaticon.com
 		<script name="PowerManagerCA" file="scripts/manager_power_ca.lua"/>
 		<script name="ActionDamage2" file="scripts/manager_action_damage_ca.lua"/>
 		<script name="ActionHealCA" file="scripts/manager_action_heal_ca.lua"/>
+		<script name="EffectManagerCA" file="scripts/manager_effect_ca.lua"/>
 		<script name="StringManagerCA" file="scripts/manager_string_ca.lua"/>
 
 		<!-- updates the character sheet to add support for max PC HP adjustments as well as toggling between wounds and current HP -->

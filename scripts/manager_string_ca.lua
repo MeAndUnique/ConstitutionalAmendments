@@ -1,22 +1,30 @@
 -- 
--- Please see the license.html file included with this distribution for 
+-- Please see the license file included with this distribution for 
 -- attribution and copyright information.
 --
 
-bPatternContains = false;
 local containsOriginal;
+local nCount = 0;
 
 function onInit()
 	containsOriginal = StringManager.contains;
-	PowerManager.contains = contains;
-	Debug.chat("match check", string.gmatch("[2]", "%[(%d+.?%d*)%]"))
+	StringManager.contains = contains;
+end
+
+function beginContainsPattern()
+	nCount = nCount + 1;
+end
+
+function endContainsPattern()
+	table.remove(aContainsPatterns);
+	nCount = nCount - 1;
 end
 
 function contains(set, item)
 	local result = containsOriginal(set, item);
-	if not result and bPatternContains then
-		for i = 1, #set do
-			if item:gmatch(set[i]) then
+	if not result and nCount > 0 then
+		for _,pattern in ipairs(set) do
+			if item:match(pattern) then
 				return true;
 			end
 		end
