@@ -1,5 +1,5 @@
 -- 
--- Please see the license.html file included with this distribution for 
+-- Please see the license file included with this distribution for 
 -- attribution and copyright information.
 --
 
@@ -419,7 +419,7 @@ function messageDiscrepancy(nodeChar)
 		local message = {
 			font = "msgfont",
 			icon = "indicator_stop",
-			text = "There is a discrepancy of " .. nDiscrepancy .. " hitpoints. Please update the roll values accordinly."
+			text = "There is a discrepancy of " .. nDiscrepancy .. " hitpoints. Please update the roll values accordingly."
 		};
 		Comm.addChatMessage(message);
 	end

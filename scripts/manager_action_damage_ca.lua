@@ -1,13 +1,16 @@
 -- 
--- Please see the license.html file included with this distribution for 
+-- Please see the license file included with this distribution for 
 -- attribution and copyright information.
 --
 
+local getDamageTypesFromStringOriginal;
 local applyDamageOriginal;
+local applyDmgEffectsToModRollOriginal;
 local decodeDamageTextOriginal;
 local messageDamageOriginal;
 
 local decodeResult;
+local DAMAGE_RATE_PATTERN = "'(%d*%.?%d+)'";
 
 function onInit()
 	table.insert(DataCommon.dmgtypes, "max");
@@ -15,20 +18,35 @@ function onInit()
 	table.insert(DataCommon.dmgtypes, "hsteal");
 	table.insert(DataCommon.dmgtypes, "stealtemp");
 	table.insert(DataCommon.dmgtypes, "hstealtemp");
+	table.insert(DataCommon.dmgtypes, DAMAGE_RATE_PATTERN);
 	table.insert(DataCommon.specialdmgtypes, "max");
 	table.insert(DataCommon.specialdmgtypes, "steal");
 	table.insert(DataCommon.specialdmgtypes, "hsteal");
 	table.insert(DataCommon.specialdmgtypes, "stealtemp");
 	table.insert(DataCommon.specialdmgtypes, "hstealtemp");
+	table.insert(DataCommon.specialdmgtypes, DAMAGE_RATE_PATTERN);
+
+	getDamageTypesFromStringOriginal = ActionDamage.getDamageTypesFromString;
+	ActionDamage.getDamageTypesFromString = getDamageTypesFromString;
 
 	applyDamageOriginal = ActionDamage.applyDamage;
 	ActionDamage.applyDamage = applyDamage;
+
+	applyDmgEffectsToModRollOriginal = ActionDamage.applyDmgEffectsToModRoll;
+	ActionDamage.applyDmgEffectsToModRoll = applyDmgEffectsToModRoll;
 
 	decodeDamageTextOriginal = ActionDamage.decodeDamageText;
 	ActionDamage.decodeDamageText = decodeDamageText;
 
 	messageDamageOriginal = ActionDamage.messageDamage;
 	ActionDamage.messageDamage = messageDamage;
+end
+
+function getDamageTypesFromString(sDamageTypes)
+	StringManagerCA.beginContainsPattern();
+	local result = {getDamageTypesFromStringOriginal(sDamageTypes)};
+	StringManagerCA.endContainsPattern();
+	return unpack(result);
 end
 
 function applyDamage(rSource, rTarget, bSecret, sDamage, nTotal)
@@ -55,6 +73,13 @@ function applyDamage(rSource, rTarget, bSecret, sDamage, nTotal)
 	end
 
 	return applyDamageOriginal(rSource, rTarget, bSecret, sDamage, nTotal);
+end
+
+function applyDmgEffectsToModRoll(rRoll, rSource, rTarget)
+	StringManagerCA.beginContainsPattern();
+	local result = {applyDmgEffectsToModRollOriginal(rRoll, rSource, rTarget)};
+	StringManagerCA.endContainsPattern();
+	return unpack(result);
 end
 
 function decodeDamageText(nDamage, sDamageDesc)
@@ -135,7 +160,7 @@ function resolveDamage(rSource, rTarget, sTotal, sExtraResult, rComplexDamage)
 			bMax = bMax or type == "max";
 			
 			if bCheckSteal or bCheckTempSteal or bCheckTransfer then
-				local sRate = string.match(type, "%[(%d+.?%d*)%]");
+				local sRate = string.match(type, DAMAGE_RATE_PATTERN);
 				if sRate then
 					if bCheckSteal then
 						nSteal = tonumber(sRate);

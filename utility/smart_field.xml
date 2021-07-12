@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+	<template name="smartnumber">
+		<numberc>
+			<script file="utility/scripts/smart_field.lua" />
+			<fieldtype>number</fieldtype>
+		</numberc>
+	</template>
+	<template name="simplesmartnumber">
+		<smartnumber>
+			<droptypes>
+				<type>number</type>
+			</droptypes>
+			<font>sheetnumber</font>
+		</smartnumber>
+	</template>
+	<template name="basicsmartnumber">
+		<simplesmartnumber>
+			<frame mergerule="replace" name="fielddark" offset="7,5,7,5" />
+			<stateframe>
+				<keyedit name="fieldfocus" offset="7,5,7,5" />
+				<hover name="fieldfocus" offset="7,5,7,5" hidereadonly="true" />
+				<drophilight name="fieldfocus" offset="7,5,7,5" hidereadonly="true" />
+			</stateframe>
+		</simplesmartnumber>
+	</template>
+
+	<template name="smartstring">
+		<stringcontrol>
+			<script file="utility/scripts/smart_field.lua" />
+			<fieldtype>string</fieldtype>
+		</stringcontrol>
+	</template>
+	<template name="simplesmartstring">
+		<smartstring>
+			<droptypes>
+				<type>string</type>
+			</droptypes>
+			<font>sheettext</font>
+		</smartstring>
+	</template>
+	<template name="basicsmartstring">
+		<simplesmartstring>
+			<frame mergerule="replace" name="fielddark" offset="7,5,7,5" hidereadonly="true" />
+			<stateframe>
+				<keyedit name="fieldfocus" offset="7,5,7,5" />
+				<hover name="fieldfocus" offset="7,5,7,5" hidereadonly="true" />
+				<drophilight name="fieldfocus" offset="7,5,7,5" hidereadonly="true" />
+			</stateframe>
+		</simplesmartstring>
+	</template>
+
+	<template name="smartformattedtext">
+		<formattedtextcontrol>
+			<script file="utility/scripts/smart_field.lua" />
+			<fieldtype>formattedtext</fieldtype>
+		</formattedtextcontrol>
+	</template>
+	<template name="simplesmartft">
+		<smartformattedtext />
+	</template>
+	<template name="basicsmartft">
+		<simplesmartft>
+			<frame mergerule="replace" name="fielddark" offset="7,5,7,5" hidereadonly="true" />
+			<stateframe>
+				<keyedit name="fieldfocus" offset="7,5,7,5" />
+				<hover name="fieldfocus" offset="7,5,7,5" hidereadonly="true" />
+				<drophilight name="fieldfocus" offset="7,5,7,5" hidereadonly="true" />
+			</stateframe>
+		</simplesmartft>
+	</template>
+</root>

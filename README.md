@@ -15,16 +15,24 @@
   * stealtemp*: The attacker is gains temporary hitpoints equivalent to the damage dealt.
   * hstealtemp: The attacker is gains temporary hitpoints equivalent to half of the damage dealt.
   * transfer*: The damage is dealt to the attacker and the target is healed by the damage taken.
-  * *If one of these damage types is followed by a [n] damage type, where n is any positive number, the secondary effect is scaled by n. E.g. steal, [0.5] is identical to hsteal.
+  * *If one of these damage types is followed by a 'n' damage type, where n is any positive number, the secondary effect is scaled by n. E.g. `steal, '0.5'` is identical to `hsteal`.
 
 * 2 new effects have been added: SHAREDMG: n, and SHAREHEAL: n, where n is any number.
   * Any damage or healing, respectively, that is recieved by a creature with one of these effects will be shared with another creature, in proportion with n.
   * When the effect is targeted, the target of the effect will receive the shared damage or healing.
   * Then the effect is not targeted, the applier of the effect will receive the shared damage or healing.
 
-![Preview](images/ConstitutionalAmendments.png)
+![Preview](.resources/ConstitutionalAmendments.png)
 
 ## Installation
 Download [ConstitutionalAmendments.ext](https://github.com/MeAndUnique/ConstitutionalAmendments/raw/main/ConstitutionalAmendments.ext) and place in the extensions subfolder of the Fantasy Grounds data folder.
 
 NOTE: Upon first loading, this extension will attempt to resolve each PC's current total hitpoints into individual rolls. If there is a discrepency detected a notification will be given upon opening the character sheet.
+
+## Attribution
+SmiteWorks owns rights to code sections copied from their rulesets by permission for Fantasy Grounds community development.
+'Fantasy Grounds' is a trademark of SmiteWorks USA, LLC.
+'Fantasy Grounds' is Copyright 2004-2021 SmiteWorks USA LLC.
+
+<div>Icons made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+<div>Icons made by <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
