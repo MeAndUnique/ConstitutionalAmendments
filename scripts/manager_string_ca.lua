@@ -16,7 +16,6 @@ function beginContainsPattern()
 end
 
 function endContainsPattern()
-	table.remove(aContainsPatterns);
 	nCount = nCount - 1;
 end
 
