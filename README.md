@@ -15,7 +15,7 @@
   * stealtemp*: The attacker is gains temporary hitpoints equivalent to the damage dealt.
   * hstealtemp: The attacker is gains temporary hitpoints equivalent to half of the damage dealt.
   * transfer*: The damage is dealt to the attacker and the target is healed by the damage taken.
-  * *If one of these damage types is followed by a [n] damage type, where n is any positive number, the secondary effect is scaled by n. E.g. steal, [0.5] is identical to hsteal.
+  * *If one of these damage types is followed by a 'n' damage type, where n is any positive number, the secondary effect is scaled by n. E.g. `steal, '0.5'` is identical to `hsteal`.
 
 * 2 new effects have been added: SHAREDMG: n, and SHAREHEAL: n, where n is any number.
   * Any damage or healing, respectively, that is recieved by a creature with one of these effects will be shared with another creature, in proportion with n.
