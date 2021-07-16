@@ -23,7 +23,7 @@ function contains(set, item)
 	local result = containsOriginal(set, item);
 	if not result and nCount > 0 then
 		for _,pattern in ipairs(set) do
-			if item:match(pattern) then
+			if item:match('^' .. pattern .. '$') then
 				return true;
 			end
 		end

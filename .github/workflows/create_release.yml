@@ -23,7 +23,7 @@ jobs:
       uses: thedoctor0/zip-release@master
       with:
         filename: 'ConstitutionalAmendments.ext'
-        exclusions: '*.git* *.github* *.resources* /*node_modules/* .editorconfig *.ext LICENSE README.md'
+        exclusions: '*.git* *.github* *.resources* /*node_modules/* .editorconfig *.ext'
     - name: Create Release
       uses: ncipollo/release-action@v1
       with:
