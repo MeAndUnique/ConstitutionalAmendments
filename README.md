@@ -25,7 +25,7 @@
 ![Preview](.resources/ConstitutionalAmendments.png)
 
 ## Installation
-Download [ConstitutionalAmendments.ext](https://github.com/MeAndUnique/ConstitutionalAmendments/raw/main/ConstitutionalAmendments.ext) and place in the extensions subfolder of the Fantasy Grounds data folder.
+Download [ConstitutionalAmendments.ext](https://github.com/MeAndUnique/ConstitutionalAmendments/releases) and place in the extensions subfolder of the Fantasy Grounds data folder.
 
 NOTE: Upon first loading, this extension will attempt to resolve each PC's current total hitpoints into individual rolls. If there is a discrepency detected a notification will be given upon opening the character sheet.
 

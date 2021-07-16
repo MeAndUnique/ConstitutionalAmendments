@@ -13,7 +13,7 @@ function onInit()
 	-- 	{ type = "heal", subtype = "max", clauses = { { dice = { "2d10" } } } },
 	-- };
 	DataSpell.parsedata["life transference"] = {
-		{ type = "damage", clauses = { { dice = { "4d6" }, dmgtype = "necrotic, transfer, [2]" } } },
+		{ type = "damage", clauses = { { dice = { "4d6" }, dmgtype = "necrotic, transfer, '2'" } } },
 	};
 	DataSpell.parsedata["vampiric touch"] = {
 		{ type = "attack", range = "M", spell = true, base = "group" },

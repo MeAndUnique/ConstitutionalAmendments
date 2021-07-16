@@ -10,6 +10,7 @@ local resetHealthOriginal;
 local addPcOriginal;
 local addPregenCharOriginal;
 local onImportFileSelectionOriginal;
+local mnmSetMaxHPOriginal;
 
 local bAddingCharacter = false;
 local nodeAddedCharacter;
@@ -47,6 +48,11 @@ function onInit()
 		DB.addHandler("charsheet.*.classes.*.rolls.*", "onUpdate", onRollChanged);
 
 		initializeEffects();
+
+		if CharEffectsMNM then
+			mnmSetMaxHPOriginal = CharEffectsMNM.setMaxHP;
+			CharEffectsMNM.setMaxHP = mnmSetMaxHP;
+		end
 	end
 end
 
@@ -101,6 +107,11 @@ function onImportFileSelection(result, vPath)
 	end
 	bAddingCharacter = false;
 	return nodeAddedCharacter;
+end
+
+function mnmSetMaxHP(nodeChar, nEffectValue)
+	DB.setValue(nodeChar, "effects.maxhp", "number", nEffectValue);
+	recalculateTotal(nodeChar);
 end
 
 -- Event Handlers
@@ -273,19 +284,21 @@ function initializeEffects()
 end
 
 function recalculateTotal(nodeChar)
-	local nBaseHP = DB.getValue(nodeChar, "hp.base", 0)
-	local nAdjustHP = DB.getValue(nodeChar, "hp.adjust", 0)
+	local nBaseHP = DB.getValue(nodeChar, "hp.base", 0);
+	local nAdjustHP = DB.getValue(nodeChar, "hp.adjust", 0);
+	local nEffectHP = DB.getValue(nodeChar, "effects.maxhp", 0);
 	local nConAdjustment = getConAdjustment(nodeChar);
-	local nTotal = nBaseHP + nAdjustHP + nConAdjustment;
+	local nTotal = nBaseHP + nAdjustHP + nEffectHP + nConAdjustment;
 	DB.setValue(nodeChar, "hp.total", "number", nTotal);
 	return nTotal;
 end
 
 function recalculateAdjust(nodeChar)
-	local nTotalHP = DB.getValue(nodeChar, "hp.total", 0)
-	local nBaseHP = DB.getValue(nodeChar, "hp.base", 0)
+	local nTotalHP = DB.getValue(nodeChar, "hp.total", 0);
+	local nBaseHP = DB.getValue(nodeChar, "hp.base", 0);
+	local nEffectHP = DB.getValue(nodeChar, "effects.maxhp", 0);
 	local nConAdjustment = getConAdjustment(nodeChar);
-	local nAdjust = nTotalHP - nBaseHP - nConAdjustment;
+	local nAdjust = nTotalHP - nBaseHP - nEffectHP - nConAdjustment;
 	DB.setValue(nodeChar, "hp.adjust", "number", nAdjust);
 	return nAdjust;
 end
