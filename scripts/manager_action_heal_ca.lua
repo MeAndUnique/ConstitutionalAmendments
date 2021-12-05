@@ -36,20 +36,12 @@ end
 function onMaxHeal(rSource, rTarget, rRoll)
 	local nTotal = ActionsManager.total(rRoll);		
 	local sTargetType, nodeTarget = ActorManager.getTypeAndNode(rTarget);
-	if sTargetType == "pc" then
-		local nAdjust = DB.getValue(nodeTarget, "hp.adjust", 0) + nTotal;
-		DB.setValue(nodeTarget, "hp.adjust", "number", nAdjust);
-		HpManager.recalculateTotal(nodeTarget);
+	local fields = HpManager.getHealthFields(nodeTarget);
+	local nAdjust = DB.getValue(nodeTarget, fields.adjust, 0) + nTotal;
+	DB.setValue(nodeTarget, fields.adjust, "number", nAdjust);
+	HpManager.recalculateTotal(nodeTarget);
 
-		-- Add wounds so that we can heal them and gain all of the benefits of ruleset logic.
-		local nWounds = DB.getValue(nodeTarget, "hp.wounds", 0) + nTotal;
-		DB.setValue(nodeTarget, "hp.wounds", "number", nWounds);
-	else
-		local nHpTotal = DB.getValue(nodeTarget, "hptotal", 0) + nTotal;
-		DB.setValue(nodeTarget, "hptotal", "number", nHpTotal);
-
-		-- Add wounds so that we can heal them and gain all of the benefits of ruleset logic.
-		local nWounds = DB.getValue(nodeTarget, "wounds", 0) + nTotal;
-		DB.setValue(nodeTarget, "wounds", "number", nWounds);
-	end
+	-- Add wounds so that we can heal them and gain all of the benefits of ruleset logic.
+	local nWounds = DB.getValue(nodeTarget, fields.wounds, 0) + nTotal;
+	DB.setValue(nodeTarget, fields.wounds, "number", nWounds);
 end

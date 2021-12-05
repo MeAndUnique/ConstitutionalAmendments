@@ -50,6 +50,11 @@ function getDamageTypesFromString(sDamageTypes)
 end
 
 function applyDamage(rSource, rTarget, bSecret, sDamage, nTotal)
+	local sTargetNodeType, nodeTarget = ActorManager.getTypeAndNode(rTarget);
+	if not nodeTarget then
+		return;
+	end
+
 	decodeDamageText(nTotal, sDamage);
 
 	local bSwapped = false;
@@ -68,6 +73,34 @@ function applyDamage(rSource, rTarget, bSecret, sDamage, nTotal)
 
 			if bSwapped then
 				break;
+			end
+		end
+	end
+	
+	-- Hijack NPC recovery, since it doesn't work in the ruleset anyway.
+	if decodeResult and decodeResult.sType == "recovery" and (sTargetNodeType ~= "pc") then
+		local sClassNode = string.match(sDamage, "%[NODE:([^]]+)%]");
+		if sClassNode and DB.getValue(nodeTarget, "wounds", 0) > 0 then
+			-- Determine whether HD available
+			local nClassHD = 0;
+			local nClassHDMult = 0;
+			local nClassHDUsed = 0;
+			local nodeClass = DB.findNode(sClassNode);
+			if nodeClass then
+				nClassHD = DB.getValue(nodeClass, "level", 0);
+				nClassHDMult = #(DB.getValue(nodeClass, "hddie", {}));
+				nClassHDUsed = DB.getValue(nodeClass, "hdused", 0);
+			end
+			
+			if (nClassHD * nClassHDMult) <= nClassHDUsed then
+				sDamage = sDamage .. "[INSUFFICIENT]";
+			else
+				decodeResult.sType = "heal"; -- Let the ruleset handle everything related to healing.
+				-- Decrement HD used
+				local nodeClass = DB.findNode(sClassNode);
+				if nodeClass then
+					DB.setValue(nodeClass, "hdused", "number", nClassHDUsed + 1);
+				end
 			end
 		end
 	end
@@ -99,6 +132,10 @@ function messageDamage(rSource, rTarget, bSecret, sDamageType, sDamageDesc, sTot
 		-- Nothing to resolve for shared damage
 		if not string.match(sDamageDesc, "%[SHARED%]") then
 			resolveDamage(rSource, rTarget, sTotal, sExtraResult, rComplexDamage);
+		end
+	elseif decodeResult and decodeResult.sTypeOutput == "Recovery" then
+		if not string.match(sDamageDesc, "%[INSUFFICIENT%]") then
+			sTotal = sTotal .. "][HD-1";
 		end
 	elseif decodeResult and decodeResult.sType == "heal" then
 		bIsHeal = true;
@@ -215,37 +252,24 @@ function resolveDamage(rSource, rTarget, sTotal, sExtraResult, rComplexDamage)
 end
 
 function resolveMaxDamage(nMax, sExtraResult, sTargetType, nodeTarget)
+	local fields = HpManager.getHealthFields(nodeTarget);
 	sExtraResult = sExtraResult .. " [MAX REDUCED]";
-	if sTargetType == "pc" then
-		local nWounds = DB.getValue(nodeTarget, "hp.wounds", 0);
-		DB.setValue(nodeTarget, "hp.wounds", "number", math.max(0, nWounds - nMax));
+	local nWounds = DB.getValue(nodeTarget, fields.wounds, 0);
+	DB.setValue(nodeTarget, fields.wounds, "number", math.max(0, nWounds - nMax));
 
-		local nAdjust = DB.getValue(nodeTarget, "hp.adjust", 0) - nMax;
-		DB.setValue(nodeTarget, "hp.adjust", "number", nAdjust);
-		HpManager.recalculateTotal(nodeTarget);
-		
-		local nTotal = DB.getValue(nodeTarget, "hp.total", 0);
-		if nTotal <= 0 then
-			if not string.match(sExtraResult, "%[INSTANT DEATH%]") then
-				sExtraResult = sExtraResult .. " [INSTANT DEATH]";
-			end
-			nAdjust = nAdjust - nTotal;
-			DB.setValue(nodeTarget, "hp.total", "number", 0);
-			DB.setValue(nodeTarget, "hp.adjust", "number", nAdjust);
-			DB.setValue(nodeTarget, "hp.deathsavefail", "number", 3);
+	local nAdjust = DB.getValue(nodeTarget, fields.adjust, 0) - nMax;
+	DB.setValue(nodeTarget, fields.adjust, "number", nAdjust);
+	HpManager.recalculateTotal(nodeTarget);
+	
+	local nTotal = DB.getValue(nodeTarget, fields.total, 0);
+	if nTotal <= 0 then
+		if not string.match(sExtraResult, "%[INSTANT DEATH%]") then
+			sExtraResult = sExtraResult .. " [INSTANT DEATH]";
 		end
-	else
-		local nWounds = DB.getValue(nodeTarget, "wounds", 0);
-		DB.setValue(nodeTarget, "wounds", "number", math.max(0, nWounds - nMax));
-
-		local nTotal = DB.getValue(nodeTarget, "hptotal", 0) - nMax;
-		if nTotal < 0 then
-			if not string.match(sExtraResult, "%[INSTANT DEATH%]") then
-				sExtraResult = sExtraResult .. " [INSTANT DEATH]";
-			end
-			nTotal = 0;
-		end
-		DB.setValue(nodeTarget, "hptotal", "number", nTotal);
+		nAdjust = nAdjust - nTotal;
+		DB.setValue(nodeTarget, fields.total, "number", 0);
+		DB.setValue(nodeTarget, fields.adjust, "number", nAdjust);
+		DB.setValue(nodeTarget, fields.deathsavefail, "number", 3);
 	end
 end
 

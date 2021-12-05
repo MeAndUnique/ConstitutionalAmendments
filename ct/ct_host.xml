@@ -48,10 +48,7 @@
 						if super and super.onValueChanged then
 							super.onValueChanged();
 						end
-						local sClass,_ = window.link.getValue();
-						if sClass == "charsheet" then
-							HpManager.recalculateAdjust(window.link.getTargetDatabaseNode());
-						end
+						HpManager.recalculateAdjust(window.link.getTargetDatabaseNode());
 					end
 				</script>
 				<tabtarget prev="hptemp" next="wounds" />

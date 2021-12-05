@@ -30,8 +30,8 @@ Icons made by Smashicons from www.flaticon.com
 <root release="3.0" version="3">
 	<properties>
 		<name>Feature: Constitutional Amendments</name>
-		<version>2.0.4</version>
-		<loadorder>150</loadorder>
+		<version>2.1.0</version>
+		<loadorder>140</loadorder>
 		<author>MeAndUnique-and-Tielc-and-Zuilin</author>
 		<description>Adds a number of quality of life features concerning HP.</description>
 		
@@ -46,14 +46,18 @@ Icons made by Smashicons from www.flaticon.com
 		<!-- XML file containing new icons -->
 		<includefile source="graphics/icons.xml" />
 
-		<script name="OptionsHp" file="scripts/data_options_hp.lua"/>
-		<script name="DataSpell2" file="scripts/data_spell_ca.lua"/>
-		<script name="HpManager" file="scripts/manager_hp.lua"/>
-		<script name="PowerManagerCA" file="scripts/manager_power_ca.lua"/>
-		<script name="ActionDamage2" file="scripts/manager_action_damage_ca.lua"/>
+		<script name="ActionDamageCA" file="scripts/manager_action_damage_ca.lua"/>
 		<script name="ActionHealCA" file="scripts/manager_action_heal_ca.lua"/>
+		<script name="CombatManagerCA" file="scripts/manager_combat_ca.lua"/>
+		<script name="DataSpell2" file="scripts/data_spell_ca.lua"/>
 		<script name="EffectManagerCA" file="scripts/manager_effect_ca.lua"/>
+		<script name="HpManager" file="scripts/manager_hp.lua"/>
+		<script name="OptionsHp" file="scripts/data_options_hp.lua"/>
+		<script name="PowerManagerCA" file="scripts/manager_power_ca.lua"/>
 		<script name="StringManagerCA" file="scripts/manager_string_ca.lua"/>
+
+		<!-- updates the npc shett to include wounds, temp hp, adjust hp, hit dice, and death saves -->
+		<includefile source="campaign/record_npc.xml" />
 
 		<!-- updates the character sheet to add support for max PC HP adjustments as well as toggling between wounds and current HP -->
 		<includefile source="campaign/record_char_main.xml" />
@@ -74,6 +78,6 @@ Icons made by Smashicons from www.flaticon.com
 		<includefile source ="utility/smart_field.xml" />
 	</base>
 
-	<announcement text="Constitutional Amendments v2.0.4 for 5E by MeAndUnique.\r\nCurrent HP functionality designed and implemented by Tielc; FGU fixes by Zuilin." icon="CA_icon" font="emotefont" />
+	<announcement text="Constitutional Amendments v2.1.0 for 5E by MeAndUnique.\r\nCurrent HP functionality designed and implemented by Tielc; FGU fixes by Zuilin." icon="CA_icon" font="emotefont" />
 
 </root>
