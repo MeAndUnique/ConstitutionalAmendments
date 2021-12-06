@@ -9,6 +9,8 @@ function onInit()
 		wounds_label.setVisible(false);
 		hptemp_label.setVisible(false);
 		hptemp.setVisible(false);
+		hpadjust_label.setVisible(false);
+		hpadjust.setVisible(false);
 
 		hd_label.setVisible(false);
 		hitdice.setVisible(false);
