@@ -32,7 +32,7 @@
 				<sourceWounds>wounds</sourceWounds>
 			</dynamic_hp_basic>
 			<label name="hptemp_label" insertbefore="speed_label">
-				<anchored to="wounds" position="righthigh" offset="10,0" height="20" />
+				<anchored to="wounds" position="righthigh" offset="28,0" height="20" />
 				<static textres="npc_label_temphp" />
 			</label>
 			<basicnumber name="hptemp" insertbefore="speed_label">
@@ -54,7 +54,7 @@
 				</script>
 			</basicnumber>
 			<label name="hpadjust_label" insertbefore="speed_label">
-				<anchored to="hptemp" position="righthigh" offset="10,0" height="20" />
+				<anchored to="hptemp" position="righthigh" offset="28,0" height="20" />
 				<static textres="npc_label_hpadjust" />
 			</label>
 			<basicsmartnumber name="hpadjust" insertbefore="speed_label">
@@ -94,6 +94,16 @@
 				<datasource>.classes</datasource>
 				<class>charsheet_hd</class>
 				<sortby><field>name</field></sortby>
+				<script>
+					function onInit()
+						registerMenuItem(Interface.getString("menu_reparse_hitdice"), "spell_heal", 3);
+					end
+					function onMenuSelection(selection)
+						if selection == 3 then
+							window.updateHitDice();
+						end
+					end
+				</script>
 			</windowlist>
 			
 			<stringcontrol name="deathsave_label">

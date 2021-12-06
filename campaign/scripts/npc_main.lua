@@ -32,16 +32,8 @@ function onInit()
 			hpadjust.setColor(ColorManager.COLOR_ADJUSTED_HP);
 		end
 
-		local node = getDatabaseNode();
-		if DB.getChildCount(node, "classes") == 0 then
-			local nHDMult, nHDSides = getHitDice(node);
-			if nHDMult and nHDSides then
-				local classesNode = DB.createChild(node, "classes");
-				local classNode = DB.createChild(classesNode);
-				DB.setValue(classNode, "name", "string", "NPC");
-				DB.setValue(classNode, "level", "number", nHDMult);
-				DB.setValue(classNode, "hddie", "dice", { "d" .. nHDSides });
-			end
+		if DB.getChildCount(getDatabaseNode(), "classes") == 0 then
+			updateHitDice();
 		end
 	end
 
@@ -68,10 +60,33 @@ function changeHealthDisplay()
 	end
 end
 
-function getHitDice(node)
-	local sHD = StringManager.trim(DB.getValue(node, "hd", ""));
+function updateHitDice()
+	local node = getDatabaseNode();
+	local nHDMult, nHDSides = getHitDice();
+	if nHDMult and nHDSides then
+		local nodeClasses = DB.createChild(node, "classes");
+		local nodeNpcClass;
+		for _,nodeChild in pairs(DB.getChildren(nodeClasses)) do
+			if DB.getValue(nodeChild, "name") == "NPC" then
+				nodeNpcClass = nodeChild;
+				break;
+			end
+		end
+
+		if not nodeNpcClass then
+			nodeNpcClass = DB.createChild(nodeClasses);
+		end
+
+		DB.setValue(nodeNpcClass, "name", "string", "NPC");
+		DB.setValue(nodeNpcClass, "level", "number", nHDMult);
+		DB.setValue(nodeNpcClass, "hddie", "dice", { "d" .. nHDSides });
+	end
+end
+
+function getHitDice()
+	local sHD = StringManager.trim(DB.getValue(getDatabaseNode(), "hd", ""));
 	if sHD then
-		local sMult, sSides = sHD:match("(%d)d(%d+)");
+		local sMult, sSides = sHD:match("(%d+)d(%d+)");
 		if sMult and sSides then
 			return tonumber(sMult), tonumber(sSides);
 		end

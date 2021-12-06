@@ -4,19 +4,13 @@
 --
 
 local addNPCOriginal;
-local addNPCHelperOriginal;
 local resetHealthOriginal;
-
-local nodeNewEntry;
 
 function onInit()
 	CombatManager.setCustomTurnStart(onTurnStart);
 
 	addNPCOriginal = CombatManager.getCustomAddNPC();
 	CombatManager.setCustomAddNPC(addNPC);
-
-	addNPCHelperOriginal = CombatManager.addNPCHelper;
-	CombatManager.addNPCHelper = addNPCHelper;
 
 	resetHealthOriginal = CombatManager2.resetHealth;
 	CombatManager2.resetHealth = resetHealth;
@@ -47,20 +41,14 @@ function onTurnStart(nodeEntry)
 end
 
 function addNPC(sClass, nodeNPC, sName)
-	addNPCOriginal(sClass, nodeNPC, sName);
-	if nodeNewEntry then
+	local nodeEntry = addNPCOriginal(sClass, nodeNPC, sName);
+	if nodeEntry then
 		-- Account for Max/Random NPC HP settings.
-		DB.setValue(nodeNewEntry, "hp", "number", DB.getValue(nodeNewEntry, "hptotal", 0));
+		DB.setValue(nodeEntry, "hp", "number", DB.getValue(nodeEntry, "hptotal", 0));
 		 -- Undo for the automated update from the CT field
-		DB.setValue(nodeNewEntry, "hpadjust", "number", 0);
-		nodeNewEntry = nil;
+		DB.setValue(nodeEntry, "hpadjust", "number", 0);
 	end
-end
-
-function addNPCHelper(nodeNPC, sName)
-	local nodeEntry, nodeLastMatch = addNPCHelperOriginal(nodeNPC, sName);
-	nodeNewEntry = nodeEntry;
-	return nodeEntry, nodeLastMatch;
+	return nodeEntry;
 end
 
 function resetHealth(nodeChar, bLong)
