@@ -12,7 +12,7 @@
 			<number_column name="hp">
 				<script>
 					function onValueChanged()
-						if window.shouldHandleExtraHealthFields() then
+						if window.canHandleExtraHealthFields() then
 							HpManager.recalculateTotal(window.getDatabaseNode());
 							window.onHealthChanged();
 						end
