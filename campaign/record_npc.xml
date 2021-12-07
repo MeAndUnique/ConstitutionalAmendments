@@ -100,7 +100,7 @@
 					end
 					function onMenuSelection(selection)
 						if selection == 3 then
-							window.updateHitDice();
+							HpManager.updateNpcHitDice(window.getDatabaseNode());
 						end
 					end
 				</script>

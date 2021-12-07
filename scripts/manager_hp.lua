@@ -463,3 +463,36 @@ function messageDiscrepancy(nodeChar)
 		Comm.addChatMessage(message);
 	end
 end
+
+--NPC Hit Dice
+function updateNpcHitDice(nodeNPC)
+	local nHDMult, nHDSides = getNpcHitDice(nodeNPC);
+	if nHDMult and nHDSides then
+		local nodeClasses = DB.createChild(nodeNPC, "classes");
+		local nodeNpcClass;
+		for _,nodeChild in pairs(DB.getChildren(nodeClasses)) do
+			if DB.getValue(nodeChild, "name") == "NPC" then
+				nodeNpcClass = nodeChild;
+				break;
+			end
+		end
+
+		if not nodeNpcClass then
+			nodeNpcClass = DB.createChild(nodeClasses);
+		end
+
+		DB.setValue(nodeNpcClass, "name", "string", "NPC");
+		DB.setValue(nodeNpcClass, "level", "number", nHDMult);
+		DB.setValue(nodeNpcClass, "hddie", "dice", { "d" .. nHDSides });
+	end
+end
+
+function getNpcHitDice(nodeNPC)
+	local sHD = StringManager.trim(DB.getValue(nodeNPC, "hd", ""));
+	if sHD then
+		local sMult, sSides = sHD:match("(%d+)d(%d+)");
+		if sMult and sSides then
+			return tonumber(sMult), tonumber(sSides);
+		end
+	end
+end
