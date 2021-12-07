@@ -18,6 +18,23 @@ local nodeAddedCharacter;
 local bAddingInfo = false;
 local bAddingUnconscious = false;
 
+local pcFields = {
+	adjust = "hp.adjust",
+	base = "hp.base",
+	deathsavefail = "hp.deathsavefail",
+	deathsavesuccess = "hp.deathsavesuccess",
+	total = "hp.total",
+	wounds = "hp.wounds",
+};
+local npcFields = {
+	adjust = "hpadjust",
+	base = "hp",
+	deathsavefail = "deathsavefail",
+	deathsavesuccess = "deathsavesuccess",
+	total = "hptotal",
+	wounds = "wounds",
+};
+
 function onInit()
 	OOBManager.registerOOBMsgHandler(OOB_MSGTYPE_ROLLHP, handleRollHp);
 	ActionsManager.registerResultHandler("hp", onHpRoll);
@@ -284,22 +301,24 @@ function initializeEffects()
 end
 
 function recalculateTotal(nodeChar)
-	local nBaseHP = DB.getValue(nodeChar, "hp.base", 0);
-	local nAdjustHP = DB.getValue(nodeChar, "hp.adjust", 0);
+	local fields = getHealthFields(nodeChar);
+	local nBaseHP = DB.getValue(nodeChar, fields.base, 0);
+	local nAdjustHP = DB.getValue(nodeChar, fields.adjust, 0);
 	local nEffectHP = DB.getValue(nodeChar, "effects.maxhp", 0);
 	local nConAdjustment = getConAdjustment(nodeChar);
 	local nTotal = nBaseHP + nAdjustHP + nEffectHP + nConAdjustment;
-	DB.setValue(nodeChar, "hp.total", "number", nTotal);
+	DB.setValue(nodeChar, fields.total, "number", nTotal);
 	return nTotal;
 end
 
 function recalculateAdjust(nodeChar)
-	local nTotalHP = DB.getValue(nodeChar, "hp.total", 0);
-	local nBaseHP = DB.getValue(nodeChar, "hp.base", 0);
+	local fields = getHealthFields(nodeChar);
+	local nTotalHP = DB.getValue(nodeChar, fields.total, 0);
+	local nBaseHP = DB.getValue(nodeChar, fields.base, 0);
 	local nEffectHP = DB.getValue(nodeChar, "effects.maxhp", 0);
 	local nConAdjustment = getConAdjustment(nodeChar);
 	local nAdjust = nTotalHP - nBaseHP - nEffectHP - nConAdjustment;
-	DB.setValue(nodeChar, "hp.adjust", "number", nAdjust);
+	DB.setValue(nodeChar, fields.adjust, "number", nAdjust);
 	return nAdjust;
 end
 
@@ -317,6 +336,13 @@ function recalculateBase(nodeChar)
 	DB.setValue(nodeChar, "hp.base", "number", nSum);
 	recalculateTotal(nodeChar);
 	return nSum;
+end
+
+function getHealthFields(vChar)
+	if ActorManager.isPC(vChar) then
+		return pcFields;
+	end
+	return npcFields;
 end
 
 -- Utility
@@ -435,5 +461,38 @@ function messageDiscrepancy(nodeChar)
 			text = "There is a discrepancy of " .. nDiscrepancy .. " hitpoints. Please update the roll values accordingly."
 		};
 		Comm.addChatMessage(message);
+	end
+end
+
+--NPC Hit Dice
+function updateNpcHitDice(nodeNPC)
+	local nHDMult, nHDSides = getNpcHitDice(nodeNPC);
+	if nHDMult and nHDSides then
+		local nodeClasses = DB.createChild(nodeNPC, "classes");
+		local nodeNpcClass;
+		for _,nodeChild in pairs(DB.getChildren(nodeClasses)) do
+			if DB.getValue(nodeChild, "name") == "NPC" then
+				nodeNpcClass = nodeChild;
+				break;
+			end
+		end
+
+		if not nodeNpcClass then
+			nodeNpcClass = DB.createChild(nodeClasses);
+		end
+
+		DB.setValue(nodeNpcClass, "name", "string", "NPC");
+		DB.setValue(nodeNpcClass, "level", "number", nHDMult);
+		DB.setValue(nodeNpcClass, "hddie", "dice", { "d" .. nHDSides });
+	end
+end
+
+function getNpcHitDice(nodeNPC)
+	local sHD = StringManager.trim(DB.getValue(nodeNPC, "hd", ""));
+	if sHD then
+		local sMult, sSides = sHD:match("(%d+)d(%d+)");
+		if sMult and sSides then
+			return tonumber(sMult), tonumber(sSides);
+		end
 	end
 end
