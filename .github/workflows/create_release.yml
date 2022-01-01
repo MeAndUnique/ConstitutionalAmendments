@@ -19,11 +19,19 @@ jobs:
     - uses: ncipollo/release-action@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Replace Version
+      uses: jacobtomlinson/gha-find-replace@v2
+      with:
+        find: "dev_version"
+        replace: ${{github.ref_name}}
+
     - name: Archive Release
       uses: thedoctor0/zip-release@master
       with:
         filename: 'ConstitutionalAmendments.ext'
         exclusions: '*.git* *.github* *.resources* /*node_modules/* .editorconfig *.ext'
+
     - name: Create Release
       uses: ncipollo/release-action@v1
       with:

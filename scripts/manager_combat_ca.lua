@@ -52,6 +52,10 @@ function addNPC(sClass, nodeNPC, sName)
 end
 
 function resetHealth(nodeChar, bLong)
+	local nodeCreature = ActorManager.getCreatureNode(nodeChar);
+	if nodeCreature then
+		nodeChar = nodeCreature;
+	end
 	resetHealthOriginal(nodeChar, bLong);
 
 	local bResetHitDice = false;
