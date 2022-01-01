@@ -30,7 +30,7 @@ Icons made by Smashicons from www.flaticon.com
 <root release="3.0" version="3">
 	<properties>
 		<name>Feature: Constitutional Amendments</name>
-		<version>2.1.0</version>
+		<version>dev_version</version>
 		<loadorder>140</loadorder>
 		<author>MeAndUnique-and-Tielc-and-Zuilin</author>
 		<description>Adds a number of quality of life features concerning HP.</description>
@@ -78,6 +78,6 @@ Icons made by Smashicons from www.flaticon.com
 		<includefile source ="utility/smart_field.xml" />
 	</base>
 
-	<announcement text="Constitutional Amendments v2.1.0 for 5E by MeAndUnique.\r\nCurrent HP functionality designed and implemented by Tielc; FGU fixes by Zuilin." icon="CA_icon" font="emotefont" />
+	<announcement text="Constitutional Amendments dev_version for 5E by MeAndUnique.\r\nCurrent HP functionality designed and implemented by Tielc; FGU fixes by Zuilin." icon="CA_icon" font="emotefont" />
 
 </root>
