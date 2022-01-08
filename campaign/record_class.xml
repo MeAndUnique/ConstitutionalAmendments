@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+	<windowclass name="ref_classfeature_header" merge="join">
+		<script file="campaign/scripts/granthpheader.lua" />
+		<sheetdata>
+			<basicnumber name="hpadd">
+				<anchored width="20" height="20">
+					<top parent="name" anchor="bottom" offset="5" />
+					<right parent="rightanchor" anchor="left" offset="-2" />
+				</anchored>
+			</basicnumber>
+			<genericcontrol name="hpicon">
+				<anchored to="hpadd" width="20" height="20">
+					<top anchor="top" />
+					<right anchor="left" offset="-5" />
+				</anchored>
+				<icon>spell_heal</icon>
+			</genericcontrol>
+		</sheetdata>
+	</windowclass>
+</root>

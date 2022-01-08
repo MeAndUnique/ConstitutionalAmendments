@@ -10,7 +10,6 @@ local resetHealthOriginal;
 local addPcOriginal;
 local addPregenCharOriginal;
 local onImportFileSelectionOriginal;
-local mnmSetMaxHPOriginal;
 
 local bAddingCharacter = false;
 local nodeAddedCharacter;
@@ -63,11 +62,13 @@ function onInit()
 		DB.addHandler("charsheet.*.classes", "onChildDeleted", onClassDeleted);
 		DB.addHandler("charsheet.*.classes.*.level", "onUpdate", onLevelChanged);
 		DB.addHandler("charsheet.*.classes.*.rolls.*", "onUpdate", onRollChanged);
+		DB.addHandler("charsheet.*.featlist.*.hpadd", "onUpdate", onAbilityHPChanged);
+		DB.addHandler("charsheet.*.featurelist.*.hpadd", "onUpdate", onAbilityHPChanged);
+		DB.addHandler("charsheet.*.traitlist.*.hpadd", "onUpdate", onAbilityHPChanged);
 
 		initializeEffects();
 
 		if CharEffectsMNM then
-			mnmSetMaxHPOriginal = CharEffectsMNM.setMaxHP;
 			CharEffectsMNM.setMaxHP = mnmSetMaxHP;
 		end
 	end
@@ -128,7 +129,6 @@ end
 
 function mnmSetMaxHP(nodeChar, nEffectValue)
 	DB.setValue(nodeChar, "effects.maxhp", "number", nEffectValue);
-	recalculateTotal(nodeChar);
 end
 
 -- Event Handlers
@@ -184,6 +184,11 @@ function onRollChanged(nodeRoll)
 	recalculateBase(nodeChar);
 end
 
+function onAbilityHPChanged(nodeHP)
+	local nodeChar = nodeHP.getChild("....");
+	recalculateBase(nodeChar);
+end
+
 function onCombatantDeleted(nodeCombatant)
 	DB.removeHandler(nodeCombatant.getPath("effects"), "onChildUpdate", onCombatantEffectUpdated);
 end
@@ -194,22 +199,20 @@ function onCombatantEffectUpdated(nodeEffectList)
 	end
 
 	local nodeCombatant = nodeEffectList.getParent();
-	local class, record = DB.getValue(nodeCombatant, "link");
-	if class == "charsheet" then
-		local nodeChar = DB.findNode(record);
-		if nodeChar then
-			local nOriginal = DB.getValue(nodeChar, "hp.total", 0);
-			local nTotal = recalculateTotal(nodeChar);
+	local rActor = ActorManager.resolveActor(nodeCombatant);
+	local fields = getHealthFields(rActor);
+	local nodeChar = ActorManager.getCreatureNode(rActor) or nodeCombatant;
 
-			if nOriginal ~= nTotal then
-				local nWounds = DB.getValue(nodeChar, "hp.wounds", 0);
-				if nWounds >= nTotal then
-					if not EffectManager5E.hasEffect(nodeChar, "Unconscious") then
-						EffectManager.addEffect("", "", nodeCombatant, { sName = "Unconscious", nDuration = 0 }, true);
-						Comm.deliverChatMessage({font="msgfont", text="[STATUS: Dying]"});
-						DB.setValue(nodeChar, "hp.wounds", "number", nTotal);
-					end
-				end
+	local nOriginal = DB.getValue(nodeChar, fields.total, 0);
+	local nTotal = recalculateTotal(nodeChar);
+
+	if nOriginal ~= nTotal then
+		local nWounds = DB.getValue(nodeChar, fields.wounds, 0);
+		if nWounds >= nTotal then
+			if not EffectManager5E.hasEffect(nodeChar, "Unconscious") then
+				EffectManager.addEffect("", "", nodeCombatant, { sName = "Unconscious", nDuration = 0 }, true);
+				Comm.deliverChatMessage({font="msgfont", text="[STATUS: Dying]"});
+				DB.setValue(nodeChar, fields.wounds, "number", nTotal);
 			end
 		end
 	end
@@ -288,15 +291,12 @@ end
 
 function initializeEffects()
 	for _,nodeCT in pairs(CombatManager.getCombatantNodes()) do
-		local class, record = DB.getValue(nodeCT, "link");
-		if class == "charsheet" then
-			local nodeChar = DB.findNode(record);
-			if nodeChar then
-				DB.addHandler(nodeCT.getPath("effects"), "onChildUpdate", onCombatantEffectUpdated);
-				nodeCT.onDelete = onCombatantDeleted;
-				recalculateTotal(nodeChar);
-			end
-		end
+		local rActor = ActorManager.resolveActor(nodeCT);
+		local nodeChar = ActorManager.getCreatureNode(rActor) or nodeCT;
+
+		DB.addHandler(nodeCT.getPath("effects"), "onChildUpdate", onCombatantEffectUpdated);
+		nodeCT.onDelete = onCombatantDeleted;
+		recalculateTotal(nodeChar);
 	end
 end
 
@@ -304,8 +304,8 @@ function recalculateTotal(nodeChar)
 	local fields = getHealthFields(nodeChar);
 	local nBaseHP = DB.getValue(nodeChar, fields.base, 0);
 	local nAdjustHP = DB.getValue(nodeChar, fields.adjust, 0);
-	local nEffectHP = DB.getValue(nodeChar, "effects.maxhp", 0);
 	local nConAdjustment = getConAdjustment(nodeChar);
+	local nEffectHP = getEffectAdjustment(nodeChar);
 	local nTotal = nBaseHP + nAdjustHP + nEffectHP + nConAdjustment;
 	DB.setValue(nodeChar, fields.total, "number", nTotal);
 	return nTotal;
@@ -315,8 +315,8 @@ function recalculateAdjust(nodeChar)
 	local fields = getHealthFields(nodeChar);
 	local nTotalHP = DB.getValue(nodeChar, fields.total, 0);
 	local nBaseHP = DB.getValue(nodeChar, fields.base, 0);
-	local nEffectHP = DB.getValue(nodeChar, "effects.maxhp", 0);
 	local nConAdjustment = getConAdjustment(nodeChar);
+	local nEffectHP = getEffectAdjustment(nodeChar);
 	local nAdjust = nTotalHP - nBaseHP - nEffectHP - nConAdjustment;
 	DB.setValue(nodeChar, fields.adjust, "number", nAdjust);
 	return nAdjust;
@@ -347,9 +347,14 @@ end
 
 -- Utility
 function getConAdjustment(nodeChar)
-	local nMod, _ = ActorManager5E.getAbilityEffectsBonus(nodeChar, "constitution")
+	local nMod = ActorManager5E.getAbilityEffectsBonus(nodeChar, "constitution")
 	local nLevels = getTotalLevel(nodeChar);
 	return nMod * nLevels;
+end
+
+function getEffectAdjustment(nodeChar)
+	local nMod = EffectManager5E.getEffectsBonus(nodeChar, "MAXHP", true);
+	return nMod;
 end
 
 function getTotalLevel(nodeChar)
@@ -364,23 +369,39 @@ function getTotalLevel(nodeChar)
 end
 
 function getMiscellaneousCharacterHpBonus(nodeChar)
-	-- TODO add extensibility point for HP modifiers
 	local nMiscBonus = 0;
-	if CharManager.hasTrait(nodeChar, CharManager.TRAIT_DWARVEN_TOUGHNESS) then
-		nMiscBonus = 1;
+	local sToughnessLower = StringManager.trim(CharManager.TRAIT_DWARVEN_TOUGHNESS):lower();
+	local sToughLower = StringManager.trim(CharManager.FEAT_TOUGH):lower();
+	for _,nodeTrait in pairs(DB.getChildren(nodeChar, "traitlist")) do
+		if DB.getValue(nodeTrait, "granthp") == 1 then
+			nMiscBonus = nMiscBonus + DB.getValue(nodeTrait, "hpadd", 0);
+		elseif StringManager.trim(DB.getValue(nodeTrait, "name", "")):lower() == sToughnessLower then
+			nMiscBonus = nMiscBonus + 1;
+		end
 	end
-	if CharManager.hasFeat(nodeChar, CharManager.FEAT_TOUGH) then
-		nMiscBonus = nMiscBonus + 2
+	for _,nodeFeat in pairs(DB.getChildren(nodeChar, "featlist")) do
+		if DB.getValue(nodeFeat, "granthp") == 1 then
+			nMiscBonus = nMiscBonus + DB.getValue(nodeFeat, "hpadd", 0);
+		elseif StringManager.trim(DB.getValue(nodeFeat, "name", "")):lower() == sToughnessLower then
+			nMiscBonus = nMiscBonus + 2;
+		end
 	end
 	return nMiscBonus;
 end
 
 function getMiscellaneousClassHpBonus(nodeChar, nodeClass)
-	-- TODO add extensibility point for HP modifiers
 	local nMiscBonus = 0;
 	local sClassNameLower = StringManager.trim(DB.getValue(nodeClass, "name", "")):lower();
-	if (sClassNameLower == CharManager.CLASS_SORCERER) and CharManager.hasFeature(nodeChar, CharManager.FEATURE_DRACONIC_RESILIENCE) then
-		nMiscBonus = nMiscBonus + 1;
+	local sSorcererLower = StringManager.trim(CharManager.CLASS_SORCERER):lower();
+	local sDraconicResilienceLower = StringManager.trim(CharManager.FEATURE_DRACONIC_RESILIENCE):lower();
+	for _,nodeFeature in pairs(DB.getChildren(nodeChar, "featurelist")) do
+		local sSourceNameLower = StringManager.trim(DB.getValue(nodeFeature, "source", "")):lower();
+		local sFeatureNameLower = StringManager.trim(DB.getValue(nodeFeature, "name", "")):lower();
+		if (sClassNameLower == sSourceNameLower) and (DB.getValue(nodeFeature, "granthp") == 1) then
+			nMiscBonus = nMiscBonus + DB.getValue(nodeFeature, "hpadd", 0);
+		elseif (sClassNameLower == sSorcererLower) and (sFeatureNameLower == sDraconicResilienceLower) then
+			nMiscBonus = nMiscBonus + 1;
+		end
 	end
 	return nMiscBonus;
 end
