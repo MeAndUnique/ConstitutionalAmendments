@@ -56,7 +56,7 @@ Icons made by Smashicons from www.flaticon.com
 		<script name="PowerManagerCA" file="scripts/manager_power_ca.lua"/>
 		<script name="StringManagerCA" file="scripts/manager_string_ca.lua"/>
 
-		<!-- updates the npc shett to include wounds, temp hp, adjust hp, hit dice, and death saves -->
+		<!-- updates the npc sheet to include wounds, temp hp, adjust hp, hit dice, and death saves -->
 		<includefile source="campaign/record_npc.xml" />
 
 		<!-- updates the character sheet to add support for max PC HP adjustments as well as toggling between wounds and current HP -->
@@ -64,6 +64,12 @@ Icons made by Smashicons from www.flaticon.com
 
 		<!-- updates the heal power window to support increasing max HP -->
 		<includefile source="campaign/record_power_roll.xml" />
+		
+		<!-- updates to to allow various features to grant hp -->
+		<includefile source="campaign/record_ability.xml" />
+		<includefile source="campaign/record_class.xml" />
+		<includefile source="campaign/record_feat.xml" />
+		<includefile source="campaign/record_race.xml" />
 
 		<!-- updates the combat tracker to add support for max PC HP adjustments as well as toggling between wounds and current HP, for the host -->
 		<includefile source="ct/ct_host.xml" />

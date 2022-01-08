@@ -63,6 +63,9 @@ function onInit()
 		DB.addHandler("charsheet.*.classes", "onChildDeleted", onClassDeleted);
 		DB.addHandler("charsheet.*.classes.*.level", "onUpdate", onLevelChanged);
 		DB.addHandler("charsheet.*.classes.*.rolls.*", "onUpdate", onRollChanged);
+		DB.addHandler("charsheet.*.featlist.*.hpadd", "onUpdate", onAbilityHPChanged);
+		DB.addHandler("charsheet.*.featurelist.*.hpadd", "onUpdate", onAbilityHPChanged);
+		DB.addHandler("charsheet.*.traitlist.*.hpadd", "onUpdate", onAbilityHPChanged);
 
 		initializeEffects();
 
@@ -181,6 +184,11 @@ end
 function onRollChanged(nodeRoll)
 	local nodeChar = nodeRoll.getChild(".....");
 	DB.deleteNode(nodeChar.getPath("hp.discrepancy"));
+	recalculateBase(nodeChar);
+end
+
+function onAbilityHPChanged(nodeHP)
+	local nodeChar = nodeHP.getChild("....");
 	recalculateBase(nodeChar);
 end
 
@@ -364,23 +372,39 @@ function getTotalLevel(nodeChar)
 end
 
 function getMiscellaneousCharacterHpBonus(nodeChar)
-	-- TODO add extensibility point for HP modifiers
 	local nMiscBonus = 0;
-	if CharManager.hasTrait(nodeChar, CharManager.TRAIT_DWARVEN_TOUGHNESS) then
-		nMiscBonus = 1;
+	local sToughnessLower = StringManager.trim(CharManager.TRAIT_DWARVEN_TOUGHNESS):lower();
+	local sToughLower = StringManager.trim(CharManager.FEAT_TOUGH):lower();
+	for _,nodeTrait in pairs(DB.getChildren(nodeChar, "traitlist")) do
+		if DB.getValue(nodeTrait, "granthp") == 1 then
+			nMiscBonus = nMiscBonus + DB.getValue(nodeTrait, "hpadd", 0);
+		elseif StringManager.trim(DB.getValue(nodeTrait, "name", "")):lower() == sToughnessLower then
+			nMiscBonus = nMiscBonus + 1;
+		end
 	end
-	if CharManager.hasFeat(nodeChar, CharManager.FEAT_TOUGH) then
-		nMiscBonus = nMiscBonus + 2
+	for _,nodeFeat in pairs(DB.getChildren(nodeChar, "featlist")) do
+		if DB.getValue(nodeFeat, "granthp") == 1 then
+			nMiscBonus = nMiscBonus + DB.getValue(nodeFeat, "hpadd", 0);
+		elseif StringManager.trim(DB.getValue(nodeFeat, "name", "")):lower() == sToughnessLower then
+			nMiscBonus = nMiscBonus + 2;
+		end
 	end
 	return nMiscBonus;
 end
 
 function getMiscellaneousClassHpBonus(nodeChar, nodeClass)
-	-- TODO add extensibility point for HP modifiers
 	local nMiscBonus = 0;
 	local sClassNameLower = StringManager.trim(DB.getValue(nodeClass, "name", "")):lower();
-	if (sClassNameLower == CharManager.CLASS_SORCERER) and CharManager.hasFeature(nodeChar, CharManager.FEATURE_DRACONIC_RESILIENCE) then
-		nMiscBonus = nMiscBonus + 1;
+	local sSorcererLower = StringManager.trim(CharManager.CLASS_SORCERER):lower();
+	local sDraconicResilienceLower = StringManager.trim(CharManager.FEATURE_DRACONIC_RESILIENCE):lower();
+	for _,nodeFeature in pairs(DB.getChildren(nodeChar, "featurelist")) do
+		local sSourceNameLower = StringManager.trim(DB.getValue(nodeFeature, "source", "")):lower();
+		local sFeatureNameLower = StringManager.trim(DB.getValue(nodeFeature, "name", "")):lower();
+		if (sClassNameLower == sSourceNameLower) and (DB.getValue(nodeFeature, "granthp") == 1) then
+			nMiscBonus = nMiscBonus + DB.getValue(nodeFeature, "hpadd", 0);
+		elseif (sClassNameLower == sSorcererLower) and (sFeatureNameLower == sDraconicResilienceLower) then
+			nMiscBonus = nMiscBonus + 1;
+		end
 	end
 	return nMiscBonus;
 end
