@@ -66,4 +66,20 @@
 			</dynamic_hp_basic>
 		</sheetdata>
 	</windowclass>
+
+	<windowclass name="ct_effect" merge="join">
+		<sheetdata>
+			<button_ct_effect_isactive name="isactive">
+				<script>
+					function onClickRelease(button, x, y)
+						local sLabel = window.label.getValue();
+						if (getValue() == 1) and (sLabel:match("CON%:") or sLabel:match("MAXHP%:")) then
+							setValue(0);
+							return true;
+						end
+					end
+				</script>
+			</button_ct_effect_isactive>
+		</sheetdata>
+	</windowclass>
 </root>
