@@ -72,11 +72,13 @@
 			<button_ct_effect_isactive name="isactive">
 				<script>
 					function onClickRelease(button, x, y)
+						local result = super and super.onClickRelease and super.onClickRelease(button, x, y);
 						local sLabel = window.label.getValue();
 						if (getValue() == 1) and (sLabel:match("CON%:") or sLabel:match("MAXHP%:")) then
 							setValue(0);
-							return true;
+							result = true;
 						end
+						return result;
 					end
 				</script>
 			</button_ct_effect_isactive>
