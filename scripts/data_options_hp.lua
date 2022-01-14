@@ -13,6 +13,6 @@ function onInit()
 	OptionsManager.registerOption2("HRHP", false, "option_header_CA", "option_label_HRHP", "option_entry_cycler", 
 		{ labels="option_val_hp_roll", values="roll", baselabel="option_val_hp_average", baseval="", default="" });
 
-	OptionsManager.registerOption2("NPCHF", false, "option_header_CA", "option_label_NPCHF", "option_entry_cycler", 
+	OptionsManager.registerOption2("NPCDI", false, "option_header_CA", "option_label_NPCDI", "option_entry_cycler", 
 		{ labels="option_val_off", values="off", baselabel="option_val_on", baseval="", default="" });
 end

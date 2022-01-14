@@ -5,12 +5,16 @@
 
 function onInit()
 	if canHandleExtraHealthFields() then
+		local node = getDatabaseNode();
+
 		onHealthChanged();
 		OptionsManager.registerCallback("WNDC", onHealthChanged);
 		changeHealthDisplay();
 		OptionsManager.registerCallback("HPDM", changeHealthDisplay);
 		showOrHideHealthFields();
-		OptionsManager.registerCallback("NPCHF", showOrHideHealthFields);
+		if not DB.getChild(node, "instadeath") then
+			OptionsManager.registerCallback("NPCDI", showOrHideHealthFields);
+		end
 
 		if ColorManager.COLOR_TEMP_HP then
 			hptemp.setColor(ColorManager.COLOR_TEMP_HP);
@@ -20,7 +24,7 @@ function onInit()
 		end
 
 		if DB.getChildCount(getDatabaseNode(), "classes") == 0 then
-			HpManager.updateNpcHitDice(getDatabaseNode());
+			HpManager.updateNpcHitDice(node);
 		end
 	else
 		wounds.setVisible(false);
@@ -52,14 +56,10 @@ function canHandleExtraHealthFields()
 end
 
 function showOrHideHealthFields()
-	bShow = OptionsManager.isOption("NPCHF", "");
-
-	wounds.setVisible(bShow);
-	wounds_label.setVisible(bShow);
-	hptemp_label.setVisible(bShow);
-	hptemp.setVisible(bShow);
-	hpadjust_label.setVisible(bShow);
-	hpadjust.setVisible(bShow);
+	--todo option and field names
+	local bShowDefault = not OptionsManager.isOption("NPCDI", "");
+	local nShowSetting = DB.getValue(getDatabaseNode(), "instadeath");
+	local bShow = (nShowSetting == 0) or (bShowDefault and (nShowSetting ~= 1));
 
 	hd_label.setVisible(bShow);
 	hitdice.setVisible(bShow);
@@ -70,6 +70,14 @@ function showOrHideHealthFields()
 	deathsavesuccess_label.setVisible(bShow);
 	deathsavefail.setVisible(bShow);
 	deathsavefail_label.setVisible(bShow);
+
+	resetMenuItems();
+	if bShow then
+		--todo name icon etc
+		registerMenuItem("hide", "delete", 7);
+	else
+		registerMenuItem("show", "delete", 6);
+	end
 end
 
 function onHealthChanged()
@@ -82,5 +90,17 @@ function changeHealthDisplay()
 		wounds_label.setValue(Interface.getString("ct_tooltip_wounds"));
 	else
 		wounds_label.setValue(Interface.getString("char_tooltip_currenthp"));
+	end
+end
+
+function onMenuSelection(selection)
+	if selection == 6 then
+		DB.setValue(getDatabaseNode(), "instadeath", "number", 0);
+		OptionsManager.unregisterCallback("NPCDI", showOrHideHealthFields);
+		showOrHideHealthFields();
+	elseif selection == 7 then
+		DB.setValue(getDatabaseNode(), "instadeath", "number", 1);
+		OptionsManager.unregisterCallback("NPCDI", showOrHideHealthFields);
+		showOrHideHealthFields();
 	end
 end
