@@ -117,7 +117,6 @@ function applyDmgEffectsToModRoll(rRoll, rSource, rTarget)
 end
 
 function decodeDamageText(nDamage, sDamageDesc)
-	--todo cleanup
 	decodeResult = decodeDamageTextOriginal(nDamage, sDamageDesc);
 	if string.match(sDamageDesc, "%[HEAL") and string.match(sDamageDesc, "%[MAX%]") then
 		decodeResult.sTypeOutput = "Maximum hit points";
