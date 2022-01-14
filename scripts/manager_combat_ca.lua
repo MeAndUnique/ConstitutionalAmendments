@@ -3,11 +3,15 @@
 -- attribution and copyright information.
 --
 
+local addPcOriginal;
 local addNPCOriginal;
 local resetHealthOriginal;
 
 function onInit()
 	CombatManager.setCustomTurnStart(onTurnStart);
+
+	addPcOriginal = CombatManager.addPC;
+	CombatManager.addPC = addPC;
 
 	addNPCOriginal = CombatManager.getCustomAddNPC();
 	CombatManager.setCustomAddNPC(addNPC);
@@ -38,6 +42,13 @@ function onTurnStart(nodeEntry)
 			end
 		end
 	end
+end
+
+function addPC(nodePC)
+	addPcOriginal(nodePC);
+	local nodeCT = CombatManager.getCTFromNode(nodePC);
+	DB.addHandler(nodeCT.getPath("effects"), "onChildUpdate", onCombatantEffectUpdated);
+	nodeCT.onDelete = onCombatantDeleted;
 end
 
 function addNPC(sClass, nodeNPC, sName)

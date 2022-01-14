@@ -6,6 +6,7 @@
 local getEffectsByTypeOriginal;
 local getEffectsBonusByTypeOriginal;
 local getEffectsBonusOriginal;
+local encodeEffectOriginal;
 
 function onInit()
 	getEffectsByTypeOriginal = EffectManager5E.getEffectsByType;
@@ -16,6 +17,11 @@ function onInit()
 	
 	getEffectsBonusOriginal = EffectManager5E.getEffectsBonus;
 	EffectManager5E.getEffectsBonus = getEffectsBonus;
+
+	encodeEffectOriginal = EffectManager5E.onEffectRollEncode;
+	EffectManager5E.onEffectRollEncode = onEffectRollEncode;
+	EffectManager.setCustomOnEffectRollEncode(onEffectRollEncode);
+	EffectManager.setCustomOnEffectRollDecode(onEffectRollDecode);
 end
 
 function getEffectsByType(rActor, sEffectType, aFilter, rFilterActor, bTargetedOnly)
@@ -37,4 +43,12 @@ function getEffectsBonus(rActor, aEffectType, bModOnly, aFilter, rFilterActor, b
 	local result = {getEffectsBonusOriginal(rActor, aEffectType, bModOnly, aFilter, rFilterActor, bTargetedOnly)};
 	StringManagerCA.endContainsPattern();
 	return unpack(result);
+end
+
+function onEffectRollEncode(rRoll, rEffect)
+	encodeEffectOriginal(rRoll, rEffect);
+	
+end
+
+function onEffectRollDecode(rRoll, rEffect)
 end

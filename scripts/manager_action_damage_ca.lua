@@ -55,7 +55,7 @@ function applyDamage(rSource, rTarget, bSecret, sDamage, nTotal)
 		return;
 	end
 
-	decodeDamageText(nTotal, sDamage);
+	ActionDamage.decodeDamageText(nTotal, sDamage);
 
 	local bSwapped = false;
 	if decodeResult and decodeResult.sType == "damage" then
@@ -95,6 +95,7 @@ function applyDamage(rSource, rTarget, bSecret, sDamage, nTotal)
 			if (nClassHD * nClassHDMult) <= nClassHDUsed then
 				sDamage = sDamage .. "[INSUFFICIENT]";
 			else
+				sDamage:gsub("%[RECOVERY", "[HEAL")
 				decodeResult.sType = "heal"; -- Let the ruleset handle everything related to healing.
 				-- Decrement HD used
 				local nodeClass = DB.findNode(sClassNode);
@@ -116,11 +117,10 @@ function applyDmgEffectsToModRoll(rRoll, rSource, rTarget)
 end
 
 function decodeDamageText(nDamage, sDamageDesc)
-	if not decodeResult then
-		decodeResult = decodeDamageTextOriginal(nDamage, sDamageDesc);
-		if string.match(sDamageDesc, "%[HEAL") and string.match(sDamageDesc, "%[MAX%]") then
-			decodeResult.sTypeOutput = "Maximum hit points";
-		end
+	--todo cleanup
+	decodeResult = decodeDamageTextOriginal(nDamage, sDamageDesc);
+	if string.match(sDamageDesc, "%[HEAL") and string.match(sDamageDesc, "%[MAX%]") then
+		decodeResult.sTypeOutput = "Maximum hit points";
 	end
 	return decodeResult;
 end
