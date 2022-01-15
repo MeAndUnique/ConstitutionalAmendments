@@ -20,9 +20,9 @@
 
    *If one of these damage types is followed by a 'n' damage type, where n is any positive number, the secondary effect is scaled by n. E.g. `steal, '0.5'` is identical to `hsteal`.
 
-* Support has been added for MAXHP: n, which will adjust the total maximum hit points of the bearer by n which can be any number.
+* Support has been added for **MAXHP: x**, which will adjust the total maximum hit points of the bearer by x, which can dice and numbers.
 
-* Support has been added for SHAREDMG: n, and SHAREHEAL: n, where n is any number.
+* Support has been added for **SHAREDMG: n**, and **SHAREHEAL: n**, where n is any number.
   * Any damage or healing, respectively, that is recieved by a creature with one of these effects will be shared with another creature, in proportion with n.
   * When the effect is targeted, the target of the effect will receive the shared damage or healing.
   * Then the effect is not targeted, the applier of the effect will receive the shared damage or healing.
