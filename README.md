@@ -5,6 +5,8 @@
 * Added an option to indicate whether average hitpoints should be added when level or if they should be rolled.
 * Added an option to toggle between displaying Wounds or Current Hit Points.
   * Inspired by the [Current HP](https://www.fantasygrounds.com/forums/showthread.php?44140-Current-HP-Extension-for-5E-Ruleset) extension created by Tielc and zuilin.
+* Added an option to control whether NPCs have extra health fields for hit dice and death saving throws.
+  * This may also be specified on a per-NPC basis for any combatant on the CT by right clicking on their NPC sheet.
 
 * Added a Heal action type to increase maximum HP.
 
@@ -15,12 +17,23 @@
   * stealtemp*: The attacker is gains temporary hitpoints equivalent to the damage dealt.
   * hstealtemp: The attacker is gains temporary hitpoints equivalent to half of the damage dealt.
   * transfer*: The damage is dealt to the attacker and the target is healed by the damage taken.
-  * *If one of these damage types is followed by a 'n' damage type, where n is any positive number, the secondary effect is scaled by n. E.g. `steal, '0.5'` is identical to `hsteal`.
 
-* 2 new effects have been added: SHAREDMG: n, and SHAREHEAL: n, where n is any number.
+   *If one of these damage types is followed by a 'n' damage type, where n is any positive number, the secondary effect is scaled by n. E.g. `steal, '0.5'` is identical to `hsteal`.
+
+* Support has been added for MAXHP: n, which will adjust the total maximum hit points of the bearer by n which can be any number.
+
+* Support has been added for SHAREDMG: n, and SHAREHEAL: n, where n is any number.
   * Any damage or healing, respectively, that is recieved by a creature with one of these effects will be shared with another creature, in proportion with n.
   * When the effect is targeted, the target of the effect will receive the shared damage or healing.
   * Then the effect is not targeted, the applier of the effect will receive the shared damage or healing.
+
+  The Warding Bond spell can be automated with: AC: 1; SAVE: 1; RESIST: all; SHAREDMG: 1.
+
+* Added the following effects which apply to rolling hit dice to recover hp:
+  * **HD: x** - Adds x when the hit die is rolled, where x can be dice and numbers.
+  * **HDMULT: n** - Causes the result of a hit die roll to be multiplied by n, where n is any number. Note: extra dice adde by HD effects are not multiplied, but extra flat numbers are.
+
+* Abilities, Class Features, Ancestral Traits, and Feats can all be configured to grant hit points (as the Tough feat, for example). Simply right click on the name of the ability's window to enable and set the desired value in the field that is shown.
 
 ![Preview](.resources/ConstitutionalAmendments.png)
 
