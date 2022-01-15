@@ -8,9 +8,11 @@
 * Added an option to control whether NPCs have extra health fields for hit dice and death saving throws.
   * This may also be specified on a per-NPC basis for any combatant on the CT by right clicking on their NPC sheet.
 
+* Adjustments to constitution, both permanent and via effect will accordingly adjust HP.
 * Added a Heal action type to increase maximum HP.
+* Added fields to NPC sheets on the combat tracker for Wounds, Temp HP, HP Adjustment, Hit Dice, and Death Saves. And added an option to disable showing them.
 
-* 6 new damage types have been added:
+* Support has been added for six new special damage types:
   * max: The target's maximum hitpoints are reduced by the damage dealt.
   * steal*: The attacker is healed for the damage dealt to the target.
   * hsteal: The attacker is healed for half of the damage dealt to the target.
@@ -20,16 +22,18 @@
 
    *If one of these damage types is followed by a 'n' damage type, where n is any positive number, the secondary effect is scaled by n. E.g. `steal, '0.5'` is identical to `hsteal`.
 
-* Support has been added for MAXHP: n, which will adjust the total maximum hit points of the bearer by n which can be any number.
+   For example a vampire's bite can be fully automated by updating the damage entry to the following: [DMG: 1d6+4 piercing + 3d6 necrotic, max, steal]. And the Life Transference spell can be automated using: 4d6 necrotic, transfer, '2'.
 
-* Support has been added for SHAREDMG: n, and SHAREHEAL: n, where n is any number.
-  * Any damage or healing, respectively, that is recieved by a creature with one of these effects will be shared with another creature, in proportion with n.
+* Support has been added for **MAXHP: x**, which will adjust the total maximum hit points of the bearer by x, which can dice and numbers.
+
+* Support has been added for **SHAREDMG: n**, and **SHAREHEAL: n**, where n is any number.
+  * Any damage or healing, respectively, that is received by a creature with one of these effects will be shared with another creature, in proportion with n.
   * When the effect is targeted, the target of the effect will receive the shared damage or healing.
   * Then the effect is not targeted, the applier of the effect will receive the shared damage or healing.
 
   The Warding Bond spell can be automated with: AC: 1; SAVE: 1; RESIST: all; SHAREDMG: 1.
 
-* Added the following effects which apply to rolling hit dice to recover hp:
+* Support has been added the following effects which apply to rolling hit dice to recover hp:
   * **HD: x** - Adds x when the hit die is rolled, where x can be dice and numbers.
   * **HDMULT: n** - Causes the result of a hit die roll to be multiplied by n, where n is any number. Note: extra dice adde by HD effects are not multiplied, but extra flat numbers are.
 

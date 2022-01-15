@@ -14,7 +14,6 @@ local bAddingCharacter = false;
 local nodeAddedCharacter;
 
 local bAddingInfo = false;
-local bAddingUnconscious = false;
 
 local pcFields = {
 	adjust = "hp.adjust",
@@ -61,13 +60,25 @@ function onInit()
 		DB.addHandler("charsheet.*.featlist.*.hpadd", "onUpdate", onAbilityHPChanged);
 		DB.addHandler("charsheet.*.featurelist.*.hpadd", "onUpdate", onAbilityHPChanged);
 		DB.addHandler("charsheet.*.traitlist.*.hpadd", "onUpdate", onAbilityHPChanged);
+		DB.addHandler(CombatManager.CT_COMBATANT_PATH .. ".effects", "onChildUpdate", onCombatantEffectUpdated);
 
-		initializeEffects();
+		initializeTotalHitPoints()
 
 		if CharEffectsMNM then
 			CharEffectsMNM.setMaxHP = mnmSetMaxHP;
 		end
 	end
+end
+
+function onClose()
+	DB.removeHandler("charsheet", "onChildAdded", onCharAdded);
+	DB.removeHandler("charsheet.*.classes", "onChildDeleted", onClassDeleted);
+	DB.removeHandler("charsheet.*.classes.*.level", "onUpdate", onLevelChanged);
+	DB.removeHandler("charsheet.*.classes.*.rolls.*", "onUpdate", onRollChanged);
+	DB.removeHandler("charsheet.*.featlist.*.hpadd", "onUpdate", onAbilityHPChanged);
+	DB.removeHandler("charsheet.*.featurelist.*.hpadd", "onUpdate", onAbilityHPChanged);
+	DB.removeHandler("charsheet.*.traitlist.*.hpadd", "onUpdate", onAbilityHPChanged);
+	DB.removeHandler(CombatManager.CT_COMBATANT_PATH .. ".effects", "onChildUpdate", onCombatantEffectUpdated);
 end
 
 -- Overrides
@@ -178,15 +189,7 @@ function onAbilityHPChanged(nodeHP)
 	recalculateBase(nodeChar);
 end
 
-function onCombatantDeleted(nodeCombatant)
-	DB.removeHandler(nodeCombatant.getPath("effects"), "onChildUpdate", onCombatantEffectUpdated);
-end
-
 function onCombatantEffectUpdated(nodeEffectList)
-	if bAddingUnconscious then
-		return;
-	end
-
 	local nodeCombatant = nodeEffectList.getParent();
 	local rActor = ActorManager.resolveActor(nodeCombatant);
 	local fields = getHealthFields(rActor);
@@ -278,13 +281,10 @@ function firstTimeSetup(nodeChar)
 	end
 end
 
-function initializeEffects()
+function initializeTotalHitPoints()
 	for _,nodeCT in pairs(CombatManager.getCombatantNodes()) do
 		local rActor = ActorManager.resolveActor(nodeCT);
 		local nodeChar = ActorManager.getCreatureNode(rActor) or nodeCT;
-
-		DB.addHandler(nodeCT.getPath("effects"), "onChildUpdate", onCombatantEffectUpdated);
-		nodeCT.onDelete = onCombatantDeleted;
 		recalculateTotal(nodeChar);
 	end
 end
