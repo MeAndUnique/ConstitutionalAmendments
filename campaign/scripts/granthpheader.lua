@@ -33,7 +33,7 @@ function update()
 	else
 		hpadd.setFrame("fielddark", 7, 5, 7, 5);
 		if bShow then
-			registerMenuItem(Interface.getString("hide_hp_header"), "deletepointer", 6);
+			registerMenuItem(Interface.getString("hide_hp_header"), "delete", 6);
 		else
 			registerMenuItem(Interface.getString("show_hp_header"), "radial_heal", 5);
 		end

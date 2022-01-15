@@ -4,13 +4,16 @@
 --
 
 function onInit()
-	if canHandleExtraHealthFields() then
+	local node = getDatabaseNode();
+	if HpManager.canHandleExtraHealthFields(node) then
 		onHealthChanged();
 		OptionsManager.registerCallback("WNDC", onHealthChanged);
 		changeHealthDisplay();
 		OptionsManager.registerCallback("HPDM", changeHealthDisplay);
 		showOrHideHealthFields();
-		OptionsManager.registerCallback("NPCHF", showOrHideHealthFields);
+		if not DB.getChild(node, "showextrahealth") then
+			OptionsManager.registerCallback("NPCHF", showOrHideHealthFields);
+		end
 
 		if ColorManager.COLOR_TEMP_HP then
 			hptemp.setColor(ColorManager.COLOR_TEMP_HP);
@@ -19,8 +22,8 @@ function onInit()
 			hpadjust.setColor(ColorManager.COLOR_ADJUSTED_HP);
 		end
 
-		if DB.getChildCount(getDatabaseNode(), "classes") == 0 then
-			HpManager.updateNpcHitDice(getDatabaseNode());
+		if DB.getChildCount(node, "classes") == 0 then
+			HpManager.updateNpcHitDice(node);
 		end
 	else
 		wounds.setVisible(false);
@@ -46,20 +49,14 @@ function onInit()
 	end
 end
 
-function canHandleExtraHealthFields()
-	local node = getDatabaseNode();
-	return CombatManager.getCTFromNode(node);
+function onClose()
+	OptionsManager.unregisterCallback("WNDC", onHealthChanged);
+	OptionsManager.unregisterCallback("HPDM", changeHealthDisplay);
+	OptionsManager.unregisterCallback("NPCHF", showOrHideHealthFields);
 end
 
 function showOrHideHealthFields()
-	bShow = OptionsManager.isOption("NPCHF", "");
-
-	wounds.setVisible(bShow);
-	wounds_label.setVisible(bShow);
-	hptemp_label.setVisible(bShow);
-	hptemp.setVisible(bShow);
-	hpadjust_label.setVisible(bShow);
-	hpadjust.setVisible(bShow);
+	local bShow = HpManager.hasExtraHealthFields(getDatabaseNode());
 
 	hd_label.setVisible(bShow);
 	hitdice.setVisible(bShow);
@@ -70,6 +67,13 @@ function showOrHideHealthFields()
 	deathsavesuccess_label.setVisible(bShow);
 	deathsavefail.setVisible(bShow);
 	deathsavefail_label.setVisible(bShow);
+
+	resetMenuItems();
+	if bShow then
+		registerMenuItem(Interface.getString("hide_extra_health_fields"), "delete", 7);
+	else
+		registerMenuItem(Interface.getString("show_extra_health_fields"), "radial_plus", 6);
+	end
 end
 
 function onHealthChanged()
@@ -82,5 +86,17 @@ function changeHealthDisplay()
 		wounds_label.setValue(Interface.getString("ct_tooltip_wounds"));
 	else
 		wounds_label.setValue(Interface.getString("char_tooltip_currenthp"));
+	end
+end
+
+function onMenuSelection(selection)
+	if selection == 6 then
+		DB.setValue(getDatabaseNode(), "showextrahealth", "number", 1);
+		OptionsManager.unregisterCallback("NPCHF", showOrHideHealthFields);
+		showOrHideHealthFields();
+	elseif selection == 7 then
+		DB.setValue(getDatabaseNode(), "showextrahealth", "number", 0);
+		OptionsManager.unregisterCallback("NPCHF", showOrHideHealthFields);
+		showOrHideHealthFields();
 	end
 end

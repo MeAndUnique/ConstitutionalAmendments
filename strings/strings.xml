@@ -30,4 +30,7 @@
 
 	<string name="hide_hp_header">Remove hitpoint adjustment</string>
 	<string name="show_hp_header">Configure hitpoint adjustment</string>
+
+	<string name="hide_extra_health_fields">Hide Extra Health Fields</string>
+	<string name="show_extra_health_fields">Show Extra Health Fields</string>
 </root>

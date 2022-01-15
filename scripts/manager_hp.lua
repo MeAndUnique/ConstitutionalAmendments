@@ -7,7 +7,6 @@ OOB_MSGTYPE_ROLLHP = "rollhp";
 
 local addInfoDBOriginal;
 local resetHealthOriginal;
-local addPcOriginal;
 local addPregenCharOriginal;
 local onImportFileSelectionOriginal;
 
@@ -48,9 +47,6 @@ function onInit()
 
 		addInfoDBOriginal = CharManager.addInfoDB;
 		CharManager.addInfoDB = addInfoDB;
-
-		addPcOriginal = CombatManager.addPC;
-		CombatManager.addPC = addPC;
 
 		addPregenCharOriginal = CampaignDataManager2.addPregenChar;
 		CampaignDataManager2.addPregenChar = addPregenChar;
@@ -97,13 +93,6 @@ function addInfoDB(nodeChar, sClass, sRecord)
 	end
 	
 	bAddingInfo = false;
-end
-
-function addPC(nodePC)
-	addPcOriginal(nodePC);
-	local nodeCT = CombatManager.getCTFromNode(nodePC);
-	DB.addHandler(nodeCT.getPath("effects"), "onChildUpdate", onCombatantEffectUpdated);
-	nodeCT.onDelete = onCombatantDeleted;
 end
 
 function addPregenChar(nodeSource)
@@ -382,7 +371,7 @@ function getMiscellaneousCharacterHpBonus(nodeChar)
 	for _,nodeFeat in pairs(DB.getChildren(nodeChar, "featlist")) do
 		if DB.getValue(nodeFeat, "granthp") == 1 then
 			nMiscBonus = nMiscBonus + DB.getValue(nodeFeat, "hpadd", 0);
-		elseif StringManager.trim(DB.getValue(nodeFeat, "name", "")):lower() == sToughnessLower then
+		elseif StringManager.trim(DB.getValue(nodeFeat, "name", "")):lower() == sToughLower then
 			nMiscBonus = nMiscBonus + 2;
 		end
 	end
@@ -485,7 +474,7 @@ function messageDiscrepancy(nodeChar)
 	end
 end
 
---NPC Hit Dice
+-- Extra NPC health field handling
 function updateNpcHitDice(nodeNPC)
 	local nHDMult, nHDSides = getNpcHitDice(nodeNPC);
 	if nHDMult and nHDSides then
@@ -516,4 +505,14 @@ function getNpcHitDice(nodeNPC)
 			return tonumber(sMult), tonumber(sSides);
 		end
 	end
+end
+
+function canHandleExtraHealthFields(nodeNPC)
+	return CombatManager.getCTFromNode(nodeNPC);
+end
+
+function hasExtraHealthFields(nodeNPC)
+	local bDefault = OptionsManager.isOption("NPCHF", "");
+	local nOverride = DB.getValue(nodeNPC, "showextrahealth");
+	return HpManager.canHandleExtraHealthFields(nodeNPC) and ((nOverride == 1) or (bDefault and (nOverride ~= 0)));
 end
