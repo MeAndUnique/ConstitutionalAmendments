@@ -4,16 +4,15 @@
 --
 
 function onInit()
-	if canHandleExtraHealthFields() then
-		local node = getDatabaseNode();
-
+	local node = getDatabaseNode();
+	if HpManager.canHandleExtraHealthFields(node) then
 		onHealthChanged();
 		OptionsManager.registerCallback("WNDC", onHealthChanged);
 		changeHealthDisplay();
 		OptionsManager.registerCallback("HPDM", changeHealthDisplay);
 		showOrHideHealthFields();
-		if not DB.getChild(node, "instadeath") then
-			OptionsManager.registerCallback("NPCDI", showOrHideHealthFields);
+		if not DB.getChild(node, "showextrahealth") then
+			OptionsManager.registerCallback("NPCHF", showOrHideHealthFields);
 		end
 
 		if ColorManager.COLOR_TEMP_HP then
@@ -23,7 +22,7 @@ function onInit()
 			hpadjust.setColor(ColorManager.COLOR_ADJUSTED_HP);
 		end
 
-		if DB.getChildCount(getDatabaseNode(), "classes") == 0 then
+		if DB.getChildCount(node, "classes") == 0 then
 			HpManager.updateNpcHitDice(node);
 		end
 	else
@@ -50,16 +49,14 @@ function onInit()
 	end
 end
 
-function canHandleExtraHealthFields()
-	local node = getDatabaseNode();
-	return CombatManager.getCTFromNode(node);
+function onClose()
+	OptionsManager.unregisterCallback("WNDC", onHealthChanged);
+	OptionsManager.unregisterCallback("HPDM", changeHealthDisplay);
+	OptionsManager.unregisterCallback("NPCHF", showOrHideHealthFields);
 end
 
 function showOrHideHealthFields()
-	--todo option and field names
-	local bShowDefault = not OptionsManager.isOption("NPCDI", "");
-	local nShowSetting = DB.getValue(getDatabaseNode(), "instadeath");
-	local bShow = (nShowSetting == 0) or (bShowDefault and (nShowSetting ~= 1));
+	local bShow = HpManager.hasExtraHealthFields(getDatabaseNode());
 
 	hd_label.setVisible(bShow);
 	hitdice.setVisible(bShow);
@@ -73,10 +70,9 @@ function showOrHideHealthFields()
 
 	resetMenuItems();
 	if bShow then
-		--todo name icon etc
-		registerMenuItem("hide", "delete", 7);
+		registerMenuItem(Interface.getString("hide_extra_health_fields"), "delete", 7);
 	else
-		registerMenuItem("show", "delete", 6);
+		registerMenuItem(Interface.getString("show_extra_health_fields"), "radial_plus", 6);
 	end
 end
 
@@ -95,12 +91,12 @@ end
 
 function onMenuSelection(selection)
 	if selection == 6 then
-		DB.setValue(getDatabaseNode(), "instadeath", "number", 0);
-		OptionsManager.unregisterCallback("NPCDI", showOrHideHealthFields);
+		DB.setValue(getDatabaseNode(), "showextrahealth", "number", 1);
+		OptionsManager.unregisterCallback("NPCHF", showOrHideHealthFields);
 		showOrHideHealthFields();
 	elseif selection == 7 then
-		DB.setValue(getDatabaseNode(), "instadeath", "number", 1);
-		OptionsManager.unregisterCallback("NPCDI", showOrHideHealthFields);
+		DB.setValue(getDatabaseNode(), "showextrahealth", "number", 0);
+		OptionsManager.unregisterCallback("NPCHF", showOrHideHealthFields);
 		showOrHideHealthFields();
 	end
 end

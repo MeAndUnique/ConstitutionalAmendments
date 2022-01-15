@@ -474,7 +474,7 @@ function messageDiscrepancy(nodeChar)
 	end
 end
 
---NPC Hit Dice
+-- Extra NPC health field handling
 function updateNpcHitDice(nodeNPC)
 	local nHDMult, nHDSides = getNpcHitDice(nodeNPC);
 	if nHDMult and nHDSides then
@@ -505,4 +505,14 @@ function getNpcHitDice(nodeNPC)
 			return tonumber(sMult), tonumber(sSides);
 		end
 	end
+end
+
+function canHandleExtraHealthFields(nodeNPC)
+	return CombatManager.getCTFromNode(nodeNPC);
+end
+
+function hasExtraHealthFields(nodeNPC)
+	local bDefault = OptionsManager.isOption("NPCHF", "");
+	local nOverride = DB.getValue(nodeNPC, "showextrahealth");
+	return HpManager.canHandleExtraHealthFields(nodeNPC) and ((nOverride == 1) or (bDefault and (nOverride ~= 0)));
 end

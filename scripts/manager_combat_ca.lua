@@ -28,15 +28,17 @@ function onTurnStart(nodeEntry)
 	-- Copy/paste of original with change to handle NPCs
 	if OptionsManager.isOption("HRST", "on") then
 		if nodeEntry then
-			local sClass, sRecord = DB.getValue(nodeEntry, "link");
-			if sClass == "npc" and sRecord then
-				local nHP = DB.getValue(nodeEntry, "hptotal", 0);
-				local nWounds = DB.getValue(nodeEntry, "wounds", 0);
-				local nDeathSaveFail = DB.getValue(nodeEntry, "deathsavefail", 0);
-				if (nHP > 0) and (nWounds >= nHP) and (nDeathSaveFail < 3) then
-					local rActor = ActorManager.resolveActor(nodeEntry);
-					if not EffectManager5E.hasEffect(rActor, "Stable") then
-						ActionSave.performDeathRoll(nil, rActor, true);
+			local rActor = ActorManager.resolveActor(nodeEntry);
+			if rActor.sType == "npc" then
+				if HpManager.hasExtraHealthFields(ActorManager.getCreatureNode(rActor) or nodeEntry) then
+					local nHP = DB.getValue(nodeEntry, "hptotal", 0);
+					local nWounds = DB.getValue(nodeEntry, "wounds", 0);
+					local nDeathSaveFail = DB.getValue(nodeEntry, "deathsavefail", 0);
+					if (nHP > 0) and (nWounds >= nHP) and (nDeathSaveFail < 3) then
+						local rActor = ActorManager.resolveActor(nodeEntry);
+						if not EffectManager5E.hasEffect(rActor, "Stable") then
+							ActionSave.performDeathRoll(nil, rActor, true);
+						end
 					end
 				end
 			end
