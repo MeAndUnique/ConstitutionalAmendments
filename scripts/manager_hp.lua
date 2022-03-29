@@ -508,7 +508,7 @@ function getNpcHitDice(nodeNPC)
 end
 
 function canHandleExtraHealthFields(nodeNPC)
-	return CombatManager.getCTFromNode(nodeNPC);
+	return CombatManager.getCTFromNode(nodeNPC) ~= nil;
 end
 
 function hasExtraHealthFields(nodeNPC)
