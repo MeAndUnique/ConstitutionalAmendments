@@ -78,8 +78,10 @@ function applyDamage(rSource, rTarget, bSecret, sDamage, nTotal)
 	end
 	
 	-- Hijack NPC recovery, since it doesn't work in the ruleset anyway.
+	Debug.chat(decodeResult, sTargetNodeType);
 	if decodeResult and decodeResult.sType == "recovery" and (sTargetNodeType ~= "pc") then
 		local sClassNode = string.match(sDamage, "%[NODE:([^]]+)%]");
+		Debug.chat(sClassNode);
 		if sClassNode and DB.getValue(nodeTarget, "wounds", 0) > 0 then
 			-- Determine whether HD available
 			local nClassHD = 0;
@@ -92,10 +94,11 @@ function applyDamage(rSource, rTarget, bSecret, sDamage, nTotal)
 				nClassHDUsed = DB.getValue(nodeClass, "hdused", 0);
 			end
 			
+			Debug.chat(nClassHD, nClassHDMult, nClassHDUsed);
 			if (nClassHD * nClassHDMult) <= nClassHDUsed then
 				sDamage = sDamage .. "[INSUFFICIENT]";
 			else
-				sDamage:gsub("%[RECOVERY", "[HEAL")
+				sDamage = sDamage:gsub("%[RECOVERY", "[HEAL")
 				decodeResult.sType = "heal"; -- Let the ruleset handle everything related to healing.
 				-- Decrement HD used
 				local nodeClass = DB.findNode(sClassNode);
