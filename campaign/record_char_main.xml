@@ -56,6 +56,13 @@
 			<number_dropadd name="hp" source="hp.base">
 				<frame name="fieldlight" offset="7,5,7,5" />
 				<readonly/>
+				<stateframe>
+					<drophilight merge="delete" />
+				</stateframe>
+				<script>
+					function onDrop(x, y, draginfo)
+					end
+				</script>
 			</number_dropadd>
 			<button_charhealthcalc name="button_healthcalc">
 				<anchored to="label_hd" position="righthigh" offset="190,0" />
