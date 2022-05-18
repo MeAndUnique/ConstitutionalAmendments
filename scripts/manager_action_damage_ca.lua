@@ -76,12 +76,10 @@ function applyDamage(rSource, rTarget, bSecret, sDamage, nTotal)
 			end
 		end
 	end
-	
+
 	-- Hijack NPC recovery, since it doesn't work in the ruleset anyway.
-	Debug.chat(decodeResult, sTargetNodeType);
 	if decodeResult and decodeResult.sType == "recovery" and (sTargetNodeType ~= "pc") then
 		local sClassNode = string.match(sDamage, "%[NODE:([^]]+)%]");
-		Debug.chat(sClassNode);
 		if sClassNode and DB.getValue(nodeTarget, "wounds", 0) > 0 then
 			-- Determine whether HD available
 			local nClassHD = 0;
@@ -93,8 +91,7 @@ function applyDamage(rSource, rTarget, bSecret, sDamage, nTotal)
 				nClassHDMult = #(DB.getValue(nodeClass, "hddie", {}));
 				nClassHDUsed = DB.getValue(nodeClass, "hdused", 0);
 			end
-			
-			Debug.chat(nClassHD, nClassHDMult, nClassHDUsed);
+
 			if (nClassHD * nClassHDMult) <= nClassHDUsed then
 				sDamage = sDamage .. "[INSUFFICIENT]";
 			else
@@ -197,7 +194,7 @@ function resolveDamage(rSource, rTarget, sTotal, sExtraResult, rComplexDamage)
 		local bCheckTransfer = false;
 		for _,type in ipairs(aTemp) do
 			bMax = bMax or type == "max";
-			
+
 			if bCheckSteal or bCheckTempSteal or bCheckTransfer then
 				local sRate = string.match(type, DAMAGE_RATE_PATTERN);
 				if sRate then
@@ -209,9 +206,9 @@ function resolveDamage(rSource, rTarget, sTotal, sExtraResult, rComplexDamage)
 						nTransfer = tonumber(sRate);
 					end
 				end
-				local bCheckSteal = false;
-				local bCheckTempSteal = false;
-				local bCheckTransfer = false;
+				bCheckSteal = false;
+				bCheckTempSteal = false;
+				bCheckTransfer = false;
 			end
 
 			if type == "steal" then
@@ -262,7 +259,7 @@ function resolveMaxDamage(nMax, sExtraResult, sTargetType, nodeTarget)
 	local nAdjust = DB.getValue(nodeTarget, fields.adjust, 0) - nMax;
 	DB.setValue(nodeTarget, fields.adjust, "number", nAdjust);
 	HpManager.recalculateTotal(nodeTarget);
-	
+
 	local nTotal = DB.getValue(nodeTarget, fields.total, 0);
 	if nTotal <= 0 then
 		if not string.match(sExtraResult, "%[INSTANT DEATH%]") then
