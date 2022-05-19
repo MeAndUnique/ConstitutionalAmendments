@@ -1,5 +1,5 @@
--- 
--- Please see the license file included with this distribution for 
+--
+-- Please see the license file included with this distribution for
 -- attribution and copyright information.
 --
 
@@ -59,7 +59,7 @@ function applyDamage(rSource, rTarget, bSecret, sDamage, nTotal)
 
 	local bSwapped = false;
 	if decodeResult and decodeResult.sType == "damage" then
-		for sTypes,nDamage in pairs(decodeResult.aDamageTypes) do
+		for sTypes,_ in pairs(decodeResult.aDamageTypes) do
 			local aTemp = StringManager.split(sTypes, ",", true);
 			for _,type in ipairs(aTemp) do
 				if type == "transfer" then
@@ -76,12 +76,10 @@ function applyDamage(rSource, rTarget, bSecret, sDamage, nTotal)
 			end
 		end
 	end
-	
+
 	-- Hijack NPC recovery, since it doesn't work in the ruleset anyway.
-	Debug.chat(decodeResult, sTargetNodeType);
 	if decodeResult and decodeResult.sType == "recovery" and (sTargetNodeType ~= "pc") then
 		local sClassNode = string.match(sDamage, "%[NODE:([^]]+)%]");
-		Debug.chat(sClassNode);
 		if sClassNode and DB.getValue(nodeTarget, "wounds", 0) > 0 then
 			-- Determine whether HD available
 			local nClassHD = 0;
@@ -93,15 +91,14 @@ function applyDamage(rSource, rTarget, bSecret, sDamage, nTotal)
 				nClassHDMult = #(DB.getValue(nodeClass, "hddie", {}));
 				nClassHDUsed = DB.getValue(nodeClass, "hdused", 0);
 			end
-			
-			Debug.chat(nClassHD, nClassHDMult, nClassHDUsed);
+
 			if (nClassHD * nClassHDMult) <= nClassHDUsed then
 				sDamage = sDamage .. "[INSUFFICIENT]";
 			else
 				sDamage = sDamage:gsub("%[RECOVERY", "[HEAL")
 				decodeResult.sType = "heal"; -- Let the ruleset handle everything related to healing.
 				-- Decrement HD used
-				local nodeClass = DB.findNode(sClassNode);
+				nodeClass = DB.findNode(sClassNode);
 				if nodeClass then
 					DB.setValue(nodeClass, "hdused", "number", nClassHDUsed + 1);
 				end
@@ -133,7 +130,7 @@ function messageDamage(rSource, rTarget, bSecret, sDamageType, sDamageDesc, sTot
 	if decodeResult and decodeResult.sType == "damage" then
 		-- Nothing to resolve for shared damage
 		if not string.match(sDamageDesc, "%[SHARED%]") then
-			resolveDamage(rSource, rTarget, sTotal, sExtraResult, rComplexDamage);
+			sExtraResult = resolveDamage(rSource, rTarget, sExtraResult, rComplexDamage);
 		end
 	elseif decodeResult and decodeResult.sTypeOutput == "Recovery" then
 		if not string.match(sDamageDesc, "%[INSUFFICIENT%]") then
@@ -183,8 +180,8 @@ function messageDamage(rSource, rTarget, bSecret, sDamageType, sDamageDesc, sTot
 	end
 end
 
-function resolveDamage(rSource, rTarget, sTotal, sExtraResult, rComplexDamage)
-	local sTargetType, nodeTarget = ActorManager.getTypeAndNode(rTarget);
+function resolveDamage(rSource, rTarget, sExtraResult, rComplexDamage)
+	local _,nodeTarget = ActorManager.getTypeAndNode(rTarget);
 	local nMax = 0;
 	for sTypes,nDamage in pairs(decodeResult.aDamageTypes) do
 		local aTemp = StringManager.split(sTypes, ",", true);
@@ -197,7 +194,7 @@ function resolveDamage(rSource, rTarget, sTotal, sExtraResult, rComplexDamage)
 		local bCheckTransfer = false;
 		for _,type in ipairs(aTemp) do
 			bMax = bMax or type == "max";
-			
+
 			if bCheckSteal or bCheckTempSteal or bCheckTransfer then
 				local sRate = string.match(type, DAMAGE_RATE_PATTERN);
 				if sRate then
@@ -209,9 +206,9 @@ function resolveDamage(rSource, rTarget, sTotal, sExtraResult, rComplexDamage)
 						nTransfer = tonumber(sRate);
 					end
 				end
-				local bCheckSteal = false;
-				local bCheckTempSteal = false;
-				local bCheckTransfer = false;
+				bCheckSteal = false;
+				bCheckTempSteal = false;
+				bCheckTransfer = false;
 			end
 
 			if type == "steal" then
@@ -247,13 +244,14 @@ function resolveDamage(rSource, rTarget, sTotal, sExtraResult, rComplexDamage)
 	end
 
 	if nMax > 0 then
-		resolveMaxDamage(nMax, sExtraResult, sTargetType, nodeTarget);
+		sExtraResult = resolveMaxDamage(nMax, sExtraResult, nodeTarget);
 	end
 
-	resolveShared(rTarget, rComplexDamage, false)
+	resolveShared(rTarget, rComplexDamage, false);
+	return sExtraResult;
 end
 
-function resolveMaxDamage(nMax, sExtraResult, sTargetType, nodeTarget)
+function resolveMaxDamage(nMax, sExtraResult, nodeTarget)
 	local fields = HpManager.getHealthFields(nodeTarget);
 	sExtraResult = sExtraResult .. " [MAX REDUCED]";
 	local nWounds = DB.getValue(nodeTarget, fields.wounds, 0);
@@ -262,7 +260,7 @@ function resolveMaxDamage(nMax, sExtraResult, sTargetType, nodeTarget)
 	local nAdjust = DB.getValue(nodeTarget, fields.adjust, 0) - nMax;
 	DB.setValue(nodeTarget, fields.adjust, "number", nAdjust);
 	HpManager.recalculateTotal(nodeTarget);
-	
+
 	local nTotal = DB.getValue(nodeTarget, fields.total, 0);
 	if nTotal <= 0 then
 		if not string.match(sExtraResult, "%[INSTANT DEATH%]") then
@@ -273,6 +271,8 @@ function resolveMaxDamage(nMax, sExtraResult, sTargetType, nodeTarget)
 		DB.setValue(nodeTarget, fields.adjust, "number", nAdjust);
 		DB.setValue(nodeTarget, fields.deathsavefail, "number", 3);
 	end
+
+	return sExtraResult;
 end
 
 function resolveShared(rTarget, rComplexDamage, bIsHeal)
