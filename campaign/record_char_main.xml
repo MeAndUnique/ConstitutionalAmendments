@@ -120,7 +120,7 @@
 
 			<windowlist name="list">
 				<anchored>
-					<top parent="name" anchor="bottom" offset="5" />
+					<top parent="label_specialization" anchor="bottom" offset="5" />
 					<left offset="30" />
 					<right offset="-10" />
 				</anchored>
