@@ -1,5 +1,5 @@
--- 
--- Please see the license file included with this distribution for 
+--
+-- Please see the license file included with this distribution for
 -- attribution and copyright information.
 --
 
@@ -102,7 +102,7 @@ function addInfoDB(nodeChar, sClass, sRecord)
 		DB.setValue(nodeChar, "hp.adjust", "number", nAdjustHP);
 		recalculateBase(nodeChar);
 	end
-	
+
 	bAddingInfo = false;
 end
 
@@ -132,7 +132,7 @@ function mnmSetMaxHP(nodeChar, nEffectValue)
 end
 
 -- Event Handlers
-function onCharAdded(nodeParent, nodeChar)
+function onCharAdded(_, nodeChar)
 	if bAddingCharacter then
 		nodeAddedCharacter = nodeChar;
 	end
@@ -210,7 +210,7 @@ function onCombatantEffectUpdated(nodeEffectList)
 	end
 end
 
-function onHpRoll(rSource, rTarget, rRoll)
+function onHpRoll(rSource, _, rRoll)
 	local nodeChar = rSource;
 	if type(nodeChar) ~= "databasenode" then
 		nodeChar = DB.findNode(rSource.sCreatureNode);
@@ -259,7 +259,7 @@ function firstTimeSetup(nodeChar)
 					local nLevel = DB.getValue(nodeClass, "level", 0);
 					local nMiscClassBonus = getMiscellaneousClassHpBonus(nodeChar, nodeClass);
 					for i=1,nLevel do
-						local nValue = 0;
+						local nValue;
 						if nCalculated == 0 then
 							nValue = nHDMult * nHDSides;
 						else
@@ -422,7 +422,7 @@ function getHpRoll(nodeClass, bFirstLevel, nClassLevel)
 		if bFirstLevel then
 			nValue = nHDMult * nHDSides;
 		elseif bRoll then
-			notifyRollHp(nodeClass, nClassLevel, aDice);
+			notifyRollHp(nodeClass, nClassLevel);
 		else
 			nValue = math.floor(((nHDMult * (nHDSides + 1)) / 2) + 0.5);
 		end
@@ -434,9 +434,9 @@ function getRollNodePath(nLevel)
 	return string.format("rolls.lvl-%03d", nLevel);
 end
 
-function notifyRollHp(nodeClass, nClassLevel, aDice)
+function notifyRollHp(nodeClass, nClassLevel)
 	local messageOOB = {type=OOB_MSGTYPE_ROLLHP, sClass=nodeClass.getPath(), sLevel=tostring(nClassLevel)};
-	
+
 	if Session.IsHost then
 		local sOwner = DB.getOwner(nodeClass);
 		if sOwner ~= "" then
@@ -448,7 +448,7 @@ function notifyRollHp(nodeClass, nClassLevel, aDice)
 			end
 		end
 	end
-	
+
 	handleRollHp(messageOOB);
 end
 

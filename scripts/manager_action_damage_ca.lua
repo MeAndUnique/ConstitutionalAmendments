@@ -57,56 +57,78 @@ function applyDamage(rSource, rTarget, bSecret, sDamage, nTotal)
 
 	ActionDamage.decodeDamageText(nTotal, sDamage);
 
-	local bSwapped = false;
-	if decodeResult and decodeResult.sType == "damage" then
-		for sTypes,_ in pairs(decodeResult.aDamageTypes) do
-			local aTemp = StringManager.split(sTypes, ",", true);
-			for _,type in ipairs(aTemp) do
-				if type == "transfer" then
-					local rSwap = rTarget;
-					rTarget = rSource;
-					rSource = rSwap;
-					bSwapped = true;
-					break;
-				end
+	if decodeResult then
+		if decodeResult.sType == "damage" then
+			if checkForTransfer() then
+				local rSwap = rTarget;
+				rTarget = rSource;
+				rSource = rSwap;
 			end
-
-			if bSwapped then
-				break;
+		elseif decodeResult.sType == "heal" then
+			if string.match(sDamage, "%[HEAL") and string.match(sDamage, "%[MAX%]") then
+				applyMaxHeal(rTarget, nTotal);
 			end
-		end
-	end
-
-	-- Hijack NPC recovery, since it doesn't work in the ruleset anyway.
-	if decodeResult and decodeResult.sType == "recovery" and (sTargetNodeType ~= "pc") then
-		local sClassNode = string.match(sDamage, "%[NODE:([^]]+)%]");
-		if sClassNode and DB.getValue(nodeTarget, "wounds", 0) > 0 then
-			-- Determine whether HD available
-			local nClassHD = 0;
-			local nClassHDMult = 0;
-			local nClassHDUsed = 0;
-			local nodeClass = DB.findNode(sClassNode);
-			if nodeClass then
-				nClassHD = DB.getValue(nodeClass, "level", 0);
-				nClassHDMult = #(DB.getValue(nodeClass, "hddie", {}));
-				nClassHDUsed = DB.getValue(nodeClass, "hdused", 0);
-			end
-
-			if (nClassHD * nClassHDMult) <= nClassHDUsed then
-				sDamage = sDamage .. "[INSUFFICIENT]";
-			else
-				sDamage = sDamage:gsub("%[RECOVERY", "[HEAL")
-				decodeResult.sType = "heal"; -- Let the ruleset handle everything related to healing.
-				-- Decrement HD used
-				nodeClass = DB.findNode(sClassNode);
-				if nodeClass then
-					DB.setValue(nodeClass, "hdused", "number", nClassHDUsed + 1);
-				end
-			end
+		elseif decodeResult.sType == "recovery" and (sTargetNodeType ~= "pc") then
+			-- Hijack NPC recovery, since it doesn't work in the ruleset anyway.
+			sDamage = applyNPCRecovery(nodeTarget, sDamage);
 		end
 	end
 
 	return applyDamageOriginal(rSource, rTarget, bSecret, sDamage, nTotal);
+end
+
+function checkForTransfer()
+	for sTypes,_ in pairs(decodeResult.aDamageTypes) do
+		local aTemp = StringManager.split(sTypes, ",", true);
+		for _,type in ipairs(aTemp) do
+			if type == "transfer" then
+				return true;
+			end
+		end
+	end
+
+	return false;
+end
+
+function applyMaxHeal(rTarget, nTotal)
+	local _, nodeTarget = ActorManager.getTypeAndNode(rTarget);
+	local fields = HpManager.getHealthFields(nodeTarget);
+	local nAdjust = DB.getValue(nodeTarget, fields.adjust, 0) + nTotal;
+	DB.setValue(nodeTarget, fields.adjust, "number", nAdjust);
+	HpManager.recalculateTotal(nodeTarget);
+
+	-- Add wounds so that we can heal them and gain all of the benefits of ruleset logic.
+	local nWounds = DB.getValue(nodeTarget, fields.wounds, 0) + nTotal;
+	DB.setValue(nodeTarget, fields.wounds, "number", nWounds);
+end
+
+function applyNPCRecovery(nodeTarget, sDamage)
+	local sClassNode = string.match(sDamage, "%[NODE:([^]]+)%]");
+	if sClassNode and DB.getValue(nodeTarget, "wounds", 0) > 0 then
+		-- Determine whether HD available
+		local nClassHD = 0;
+		local nClassHDMult = 0;
+		local nClassHDUsed = 0;
+		local nodeClass = DB.findNode(sClassNode);
+		if nodeClass then
+			nClassHD = DB.getValue(nodeClass, "level", 0);
+			nClassHDMult = #(DB.getValue(nodeClass, "hddie", {}));
+			nClassHDUsed = DB.getValue(nodeClass, "hdused", 0);
+		end
+
+		if (nClassHD * nClassHDMult) <= nClassHDUsed then
+			sDamage = sDamage .. "[INSUFFICIENT]";
+		else
+			sDamage = sDamage:gsub("%[RECOVERY", "[HEAL")
+			decodeResult.sType = "heal"; -- Let the ruleset handle everything related to healing.
+			-- Decrement HD used
+			nodeClass = DB.findNode(sClassNode);
+			if nodeClass then
+				DB.setValue(nodeClass, "hdused", "number", nClassHDUsed + 1);
+			end
+		end
+	end
+	return sDamage;
 end
 
 function applyDmgEffectsToModRoll(rRoll, rSource, rTarget)
