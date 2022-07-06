@@ -1,16 +1,12 @@
--- 
--- Please see the license file included with this distribution for 
+--
+-- Please see the license file included with this distribution for
 -- attribution and copyright information.
 --
 
-local addNPCOriginal;
 local resetHealthOriginal;
 
 function onInit()
 	CombatManager.setCustomTurnStart(onTurnStart);
-
-	addNPCOriginal = CombatManager.getCustomAddNPC();
-	CombatManager.setCustomAddNPC(addNPC);
 
 	resetHealthOriginal = CombatManager2.resetHealth;
 	CombatManager2.resetHealth = resetHealth;
@@ -31,7 +27,6 @@ function onTurnStart(nodeEntry)
 					local nWounds = DB.getValue(nodeEntry, "wounds", 0);
 					local nDeathSaveFail = DB.getValue(nodeEntry, "deathsavefail", 0);
 					if (nHP > 0) and (nWounds >= nHP) and (nDeathSaveFail < 3) then
-						local rActor = ActorManager.resolveActor(nodeEntry);
 						if not EffectManager5E.hasEffect(rActor, "Stable") then
 							ActionSave.performDeathRoll(nil, rActor, true);
 						end
@@ -40,17 +35,6 @@ function onTurnStart(nodeEntry)
 			end
 		end
 	end
-end
-
-function addNPC(sClass, nodeNPC, sName)
-	local nodeEntry = addNPCOriginal(sClass, nodeNPC, sName);
-	if nodeEntry then
-		-- Account for Max/Random NPC HP settings.
-		DB.setValue(nodeEntry, "hp", "number", DB.getValue(nodeEntry, "hptotal", 0));
-		 -- Undo for the automated update from the CT field
-		DB.setValue(nodeEntry, "hpadjust", "number", 0);
-	end
-	return nodeEntry;
 end
 
 function resetHealth(nodeChar, bLong)
@@ -63,7 +47,7 @@ function resetHealth(nodeChar, bLong)
 	local bResetHitDice = false;
 	local bResetHalfHitDice = false;
 	local bResetQuarterHitDice = false;
-	
+
 	local sOptHRHV = OptionsManager.getOption("HRHV");
 	if sOptHRHV == "fast" then
 		if bLong then
@@ -80,7 +64,7 @@ function resetHealth(nodeChar, bLong)
 			bResetHalfHitDice = true;
 		end
 	end
-	
+
 	-- Reset all hit dice
 	if bResetHitDice then
 		for _,vClass in pairs(DB.getChildren(nodeChar, "classes")) do
@@ -108,7 +92,7 @@ function resetHealth(nodeChar, bLong)
 					nodeClassMax = nil;
 					nClassMaxHDSides = 0;
 					nClassMaxHDUsed = 0;
-					
+
 					for _,vClass in pairs(DB.getChildren(nodeChar, "classes")) do
 						local nClassHDUsed = DB.getValue(vClass, "hdused", 0);
 						if nClassHDUsed > 0 then
@@ -123,7 +107,7 @@ function resetHealth(nodeChar, bLong)
 							end
 						end
 					end
-					
+
 					if nodeClassMax then
 						if nHDRecovery >= nClassMaxHDUsed then
 							DB.setValue(nodeClassMax, "hdused", "number", 0);
@@ -139,7 +123,7 @@ function resetHealth(nodeChar, bLong)
 			end
 		end
 	end
-	
+
 	if bLong and OptionsManager.getOption("LRAD") == "" then
 		DB.setValue(nodeChar, "hpadjust", "number", 0);
 		HpManager.recalculateTotal(nodeChar);
