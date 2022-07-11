@@ -252,7 +252,7 @@ function resolveDamage(rSource, rTarget, sExtraResult, rComplexDamage)
 		end
 
 		if bMax or (nSteal > 0) or (nTempSteal > 0) or (nTransfer > 0) then
-			local rDamageOutput = {aDamageTypes={[sTypes]=nDamage}};
+			local rDamageOutput = {aDamageTypes={[sTypes]=nDamage}, nVal=nDamage, tNotifications={}};
 			local nDamageAdjust = ActionDamage.getDamageAdjust(rSource, rTarget, nDamage, rDamageOutput);
 			nDamageAdjust = nDamageAdjust + nDamage;
 			rComplexDamage.nStolen = (rComplexDamage.nStolen or 0) + math.floor(nDamageAdjust * nSteal);

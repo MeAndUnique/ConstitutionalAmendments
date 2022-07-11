@@ -50,6 +50,7 @@ Icons made by Smashicons from www.flaticon.com
 		<script name="ActionHealCA" file="scripts/manager_action_heal_ca.lua"/>
 		<script name="ActionRecoveryCA" file="scripts/manager_action_recovery_ca.lua"/>
 		<script name="CombatManagerCA" file="scripts/manager_combat_ca.lua"/>
+		<script name="CombatRecordManagerCA" file="scripts/manager_combat_record_ca.lua"/>
 		<script name="DataSpell2" file="scripts/data_spell_ca.lua"/>
 		<script name="EffectManagerCA" file="scripts/manager_effect_ca.lua"/>
 		<script name="HpManager" file="scripts/manager_hp.lua"/>
