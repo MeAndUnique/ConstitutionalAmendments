@@ -55,6 +55,11 @@ function applyDamage(rSource, rTarget, vRollOrSecret, sDamage, nTotal)
 		return;
 	end
 
+	if type(vRollOrSecret) == "table" then
+		sDamage = vRollOrSecret.sDesc;
+		nTotal = vRollOrSecret.nTotal;
+	end
+
 	ActionDamage.decodeDamageText(nTotal, sDamage);
 
 	if decodeResult then
@@ -146,9 +151,32 @@ function decodeDamageText(nDamage, sDamageDesc)
 	return decodeResult;
 end
 
-function messageDamage(rSource, rTarget, vRollOrSecret, sDamageType, sDamageDesc, sTotal, sExtraResult)
+function messageDamage(rSource, rTarget, vRollOrSecret, sDamageText, sDamageDesc, sTotal, sExtraResult)
 	local rComplexDamage = {};
 	local bIsHeal = false;
+	local bSecret, sDamageType, rRoll;
+
+	if type(vRollOrSecret) == "table" then
+		rRoll = vRollOrSecret;
+
+		bSecret = rRoll.bSecret;
+		sDamageType = rRoll.sType;
+		sDamageText = rRoll.sDamageText;
+		sDamageDesc = rRoll.sDesc;
+		sTotal = rRoll.nTotal;
+		sExtraResult = rRoll.sResults;
+	else
+		bSecret = vRollOrSecret;
+		
+		if sDamageText == "Recovery" then
+			sDamageType = "recovery";
+		elseif (sDamageText == "Heal") or (sDamageText == "Temporary hit points") then
+			sDamageType = "heal";
+		else
+			sDamageType = "damage";
+		end
+	end
+
 	if decodeResult and decodeResult.sType == "damage" then
 		-- Nothing to resolve for shared damage
 		if not string.match(sDamageDesc, "%[SHARED%]") then
@@ -176,7 +204,7 @@ function messageDamage(rSource, rTarget, vRollOrSecret, sDamageType, sDamageDesc
 		sExtraResult = sExtraResult .. " [SHARED]";
 	end
 
-	messageDamageOriginal(rSource, rTarget, vRollOrSecret, sDamageType, sDamageDesc, sTotal, sExtraResult);
+	messageDamageOriginal(rSource, rTarget, vRollOrSecret, sDamageText, sDamageDesc, sTotal, sExtraResult);
 
 	if rComplexDamage.nStolen and (rComplexDamage.nStolen > 0) then
 		local sDamage = "[HEAL][STOLEN]";
