@@ -9,7 +9,6 @@ local applyDmgEffectsToModRollOriginal;
 local decodeDamageTextOriginal;
 local messageDamageOriginal;
 
-local decodeResult;
 local DAMAGE_RATE_PATTERN = "'(%d*%.?%d+)'";
 
 function onInit()
@@ -55,16 +54,21 @@ function applyDamage(rSource, rTarget, vRollOrSecret, sDamage, nTotal)
 		return;
 	end
 
+	local rRoll;
 	if type(vRollOrSecret) == "table" then
+		rRoll = vRollOrSecret;
 		sDamage = vRollOrSecret.sDesc;
 		nTotal = vRollOrSecret.nTotal;
 	end
 
-	ActionDamage.decodeDamageText(nTotal, sDamage);
+	local decodeResult = ActionDamage.decodeDamageText(nTotal, sDamage);
+	if rRoll then
+		rRoll.aDamageTypes = decodeResult.aDamageTypes;
+	end
 
 	if decodeResult then
 		if decodeResult.sType == "damage" then
-			if checkForTransfer() then
+			if checkForTransfer(decodeResult) then
 				local rSwap = rTarget;
 				rTarget = rSource;
 				rSource = rSwap;
@@ -82,7 +86,7 @@ function applyDamage(rSource, rTarget, vRollOrSecret, sDamage, nTotal)
 	return applyDamageOriginal(rSource, rTarget, vRollOrSecret, sDamage, nTotal);
 end
 
-function checkForTransfer()
+function checkForTransfer(decodeResult)
 	for sTypes,_ in pairs(decodeResult.aDamageTypes) do
 		local aTemp = StringManager.split(sTypes, ",", true);
 		for _,type in ipairs(aTemp) do
@@ -125,7 +129,6 @@ function applyNPCRecovery(nodeTarget, sDamage)
 			sDamage = sDamage .. "[INSUFFICIENT]";
 		else
 			sDamage = sDamage:gsub("%[RECOVERY", "[HEAL")
-			decodeResult.sType = "heal"; -- Let the ruleset handle everything related to healing.
 			-- Decrement HD used
 			nodeClass = DB.findNode(sClassNode);
 			if nodeClass then
@@ -144,7 +147,7 @@ function applyDmgEffectsToModRoll(rRoll, rSource, rTarget)
 end
 
 function decodeDamageText(nDamage, sDamageDesc)
-	decodeResult = decodeDamageTextOriginal(nDamage, sDamageDesc);
+	local decodeResult = decodeDamageTextOriginal(nDamage, sDamageDesc);
 	if string.match(sDamageDesc, "%[HEAL") and string.match(sDamageDesc, "%[MAX%]") then
 		decodeResult.sTypeOutput = "Maximum hit points";
 	end
@@ -154,86 +157,74 @@ end
 function messageDamage(rSource, rTarget, vRollOrSecret, sDamageText, sDamageDesc, sTotal, sExtraResult)
 	local rComplexDamage = {};
 	local bIsHeal = false;
-	local bSecret, sDamageType, rRoll;
+	local rRoll;
 
 	if type(vRollOrSecret) == "table" then
 		rRoll = vRollOrSecret;
 
-		bSecret = rRoll.bSecret;
-		sDamageType = rRoll.sType;
-		sDamageText = rRoll.sDamageText;
-		sDamageDesc = rRoll.sDesc;
-		sTotal = rRoll.nTotal;
-		sExtraResult = rRoll.sResults;
-	else
-		bSecret = vRollOrSecret;
-		
-		if sDamageText == "Recovery" then
-			sDamageType = "recovery";
-		elseif (sDamageText == "Heal") or (sDamageText == "Temporary hit points") then
-			sDamageType = "heal";
-		else
-			sDamageType = "damage";
+		if rRoll.sType == "damage" then
+			-- Nothing to resolve for shared damage
+			if not string.match(rRoll.sDesc, "%[SHARED%]") then
+				resolveDamage(rSource, rTarget, rRoll, rComplexDamage);
+			end
+		elseif rRoll.sType == "recovery" then
+			rRoll.sDamageText = rRoll.sDamageText:gsub("%[HEAL", "[RECOVERY")
+		elseif rRoll.sType == "heal" then
+			bIsHeal = true;
+			if string.match(rRoll.sDesc, "%[STOLEN%]") then
+				rRoll.sResults = rRoll.sResults .. " [STOLEN]";
+			end
+			if string.match(rRoll.sDesc, "%[TRANSFER%]") then
+				rRoll.sResults = rRoll.sResults .. " [TRANSFER]";
+			end
+			if not string.match(rRoll.sDesc, "%[MAX%]") then
+				resolveShared(rTarget, rComplexDamage, true);
+			end
 		end
-	end
 
-	if decodeResult and decodeResult.sType == "damage" then
-		-- Nothing to resolve for shared damage
-		if not string.match(sDamageDesc, "%[SHARED%]") then
-			sExtraResult = resolveDamage(rSource, rTarget, sExtraResult, rComplexDamage);
+		if string.match(rRoll.sDesc, "%[SHARED%]") then
+			rRoll.sResults = rRoll.sResults .. " [SHARED]";
 		end
-	elseif decodeResult and decodeResult.sTypeOutput == "Recovery" then
-		if not string.match(sDamageDesc, "%[INSUFFICIENT%]") then
-			sTotal = sTotal .. "][HD-1";
-		end
-	elseif decodeResult and decodeResult.sType == "heal" then
-		bIsHeal = true;
-		if string.match(sDamageDesc, "%[STOLEN%]") then
-			sExtraResult = sExtraResult .. " [STOLEN]";
-		end
-		if string.match(sDamageDesc, "%[TRANSFER%]") then
-			sExtraResult = sExtraResult .. " [TRANSFER]";
-		end
-		if not string.match(sDamageDesc, "%[MAX%]") then
-			resolveShared(rTarget, rComplexDamage, true);
-		end
-	end
-	decodeResult = nil;
-
-	if string.match(sDamageDesc, "%[SHARED%]") then
-		sExtraResult = sExtraResult .. " [SHARED]";
 	end
 
 	messageDamageOriginal(rSource, rTarget, vRollOrSecret, sDamageText, sDamageDesc, sTotal, sExtraResult);
 
-	if rComplexDamage.nStolen and (rComplexDamage.nStolen > 0) then
-		local sDamage = "[HEAL][STOLEN]";
-		ActionDamage.applyDamage(rSource, rSource, vRollOrSecret, sDamage, rComplexDamage.nStolen);
-	end
-	if rComplexDamage.nTempStolen and (rComplexDamage.nTempStolen > 0) then
-		local sDamage = "[HEAL][STOLEN][TEMP]";
-		ActionDamage.applyDamage(rSource, rSource, vRollOrSecret, sDamage, rComplexDamage.nTempStolen);
-	end
-	if rComplexDamage.nTransfered and (rComplexDamage.nTransfered > 0) then
-		local sDamage = "[HEAL][TRANSFER]";
-		ActionDamage.applyDamage(rSource, rSource, vRollOrSecret, sDamage, rComplexDamage.nTransfered);
-	end
-	if rComplexDamage.rSharingTargets then
-		local nTotal = tonumber(sTotal);
-		local sDamage = "[SHARED]";
-		if bIsHeal then
-			sDamage = "[HEAL][SHARED]";
+	if rRoll then
+		if rComplexDamage.nStolen and (rComplexDamage.nStolen > 0) then
+			rRoll.sType = "heal";
+			rRoll.sDesc = "[HEAL][STOLEN]";
+			rRoll.nTotal = rComplexDamage.nStolen;
+			ActionDamage.applyDamage(rSource, rSource, rRoll);
 		end
-		for sSharingTarget,nRate in pairs(rComplexDamage.rSharingTargets) do
-			ActionDamage.applyDamage(rTarget, sSharingTarget, vRollOrSecret, sDamage, math.floor(nTotal * nRate));
+		if rComplexDamage.nTempStolen and (rComplexDamage.nTempStolen > 0) then
+			rRoll.sType = "heal";
+			rRoll.sDesc = "[HEAL][STOLEN][TEMP]";
+			rRoll.nTotal = rComplexDamage.nTempStolen;
+			ActionDamage.applyDamage(rSource, rSource, rRoll);
+		end
+		if rComplexDamage.nTransfered and (rComplexDamage.nTransfered > 0) then
+			rRoll.sType = "heal";
+			rRoll.sDesc = "[HEAL][TRANSFER]";
+			rRoll.nTotal = rComplexDamage.nTransfered;
+			ActionDamage.applyDamage(rSource, rSource, rRoll);
+		end
+		if rComplexDamage.rSharingTargets then
+			rRoll.sDesc = "[SHARED]";
+			if bIsHeal then
+				rRoll.sDesc = "[HEAL][SHARED]";
+			end
+			for sSharingTarget,nRate in pairs(rComplexDamage.rSharingTargets) do
+				rRoll.nTotal = math.floor(rRoll.nTotal * nRate)
+				ActionDamage.applyDamage(rTarget, sSharingTarget, rRoll);
+			end
 		end
 	end
 end
 
-function resolveDamage(rSource, rTarget, sExtraResult, rComplexDamage)
+function resolveDamage(rSource, rTarget, rRoll, rComplexDamage)
 	local _,nodeTarget = ActorManager.getTypeAndNode(rTarget);
 	local nMax = 0;
-	for sTypes,nDamage in pairs(decodeResult.aDamageTypes) do
+	for sTypes,nDamage in pairs(rRoll.aDamageTypes) do
 		local aTemp = StringManager.split(sTypes, ",", true);
 		local bMax = false;
 		local nSteal = 0;
@@ -294,16 +285,15 @@ function resolveDamage(rSource, rTarget, sExtraResult, rComplexDamage)
 	end
 
 	if nMax > 0 then
-		sExtraResult = resolveMaxDamage(nMax, sExtraResult, nodeTarget);
+		resolveMaxDamage(nMax, rRoll, nodeTarget);
 	end
 
 	resolveShared(rTarget, rComplexDamage, false);
-	return sExtraResult;
 end
 
-function resolveMaxDamage(nMax, sExtraResult, nodeTarget)
+function resolveMaxDamage(nMax, rRoll, nodeTarget)
 	local fields = HpManager.getHealthFields(nodeTarget);
-	sExtraResult = sExtraResult .. " [MAX REDUCED]";
+	rRoll.sResults = rRoll.sResults .. " [MAX REDUCED]";
 	local nWounds = DB.getValue(nodeTarget, fields.wounds, 0);
 	DB.setValue(nodeTarget, fields.wounds, "number", math.max(0, nWounds - nMax));
 
@@ -313,16 +303,14 @@ function resolveMaxDamage(nMax, sExtraResult, nodeTarget)
 
 	local nTotal = DB.getValue(nodeTarget, fields.total, 0);
 	if nTotal <= 0 then
-		if not string.match(sExtraResult, "%[INSTANT DEATH%]") then
-			sExtraResult = sExtraResult .. " [INSTANT DEATH]";
+		if not string.match(rRoll.sResults, "%[INSTANT DEATH%]") then
+			rRoll.sResults = rRoll.sResults .. " [INSTANT DEATH]";
 		end
 		nAdjust = nAdjust - nTotal;
 		DB.setValue(nodeTarget, fields.total, "number", 0);
 		DB.setValue(nodeTarget, fields.adjust, "number", nAdjust);
 		DB.setValue(nodeTarget, fields.deathsavefail, "number", 3);
 	end
-
-	return sExtraResult;
 end
 
 function resolveShared(rTarget, rComplexDamage, bIsHeal)
