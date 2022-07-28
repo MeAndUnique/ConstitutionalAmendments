@@ -55,6 +55,7 @@ function onInit()
 
 		DB.addHandler("charsheet", "onChildAdded", onCharAdded);
 		DB.addHandler("charsheet.*.classes", "onChildDeleted", onClassDeleted);
+		DB.addHandler("charsheet.*.classes.*.hddie", "onUpdate", onHitDiceChanged);
 		DB.addHandler("charsheet.*.classes.*.level", "onUpdate", onLevelChanged);
 		DB.addHandler("charsheet.*.classes.*.rolls.*", "onUpdate", onRollChanged);
 		DB.addHandler("charsheet.*.featlist.*.hpadd", "onUpdate", onAbilityHPChanged);
@@ -73,6 +74,7 @@ end
 function onClose()
 	DB.removeHandler("charsheet", "onChildAdded", onCharAdded);
 	DB.removeHandler("charsheet.*.classes", "onChildDeleted", onClassDeleted);
+	DB.removeHandler("charsheet.*.classes.*.hddie", "onUpdate", onHitDiceChanged);
 	DB.removeHandler("charsheet.*.classes.*.level", "onUpdate", onLevelChanged);
 	DB.removeHandler("charsheet.*.classes.*.rolls.*", "onUpdate", onRollChanged);
 	DB.removeHandler("charsheet.*.featlist.*.hpadd", "onUpdate", onAbilityHPChanged);
@@ -142,6 +144,20 @@ function onClassDeleted(nodeClasses)
 	local nodeChar = nodeClasses.getParent();
 	DB.deleteNode(nodeChar.getPath("hp.discrepancy"));
 	recalculateBase(nodeChar);
+end
+
+function onHitDiceChanged(nodeHD)
+	if bAddingCharacter then
+		return;
+	end
+
+	local nodeClass = nodeHD.getParent();
+	local nodeChar = nodeClass.getChild("...");
+	local bFirstLevel = DB.getValue(nodeChar, "hp.base", 0) == 0;
+	if bFirstLevel then
+		local nValue = getHpRoll(nodeClass, true, 1);
+		DB.setValue(nodeClass, getRollNodePath(1), "number", nValue);
+	end
 end
 
 function onLevelChanged(nodeLevel)
@@ -413,18 +429,16 @@ function getAverageHp(nHDMult, nHDSides)
 end
 
 function getHpRoll(nodeClass, bFirstLevel, nClassLevel)
-	local bRoll = OptionsManager.getOption("HRHP") == "roll";
-	local aDice = DB.getValue(nodeClass, "hddie");
-	local nHDMult = table.getn(aDice);
 	local nValue = 0;
-	if nHDMult > 0 then
-		local nHDSides = tonumber(aDice[1]:sub(2));
+	local aDice = DB.getValue(nodeClass, "hddie");
+	if type(aDice) == "table" then
 		if bFirstLevel then
-			nValue = nHDMult * nHDSides;
-		elseif bRoll then
+			nValue = DiceManager.evalDice(aDice, 0 , true);
+		elseif OptionsManager.getOption("HRHP") == "roll" then
 			notifyRollHp(nodeClass, nClassLevel);
 		else
-			nValue = math.floor(((nHDMult * (nHDSides + 1)) / 2) + 0.5);
+			nValue = DiceManager.evalDice(aDice, 0 , true);
+			nValue = math.ceil((nValue + table.getn(aDice)) / 2);
 		end
 	end
 	return nValue;
