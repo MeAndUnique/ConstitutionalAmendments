@@ -43,7 +43,12 @@ function onDrop(x, y, draginfo)
 		if draginfo.getType() == "number" then
 			local node = window.getDatabaseNode();
 			local rActor = ActorManager.resolveActor(node);
-			ActionDamage.applyDamage(nil, rActor, CombatManager.isCTHidden(node), draginfo.getDescription(), draginfo.getNumberData());
+			local rRoll = {};
+			rRoll.bSecret = CombatManager.isCTHidden(node);
+			rRoll.sDesc = draginfo.getDescription();
+			rRoll.nTotal = draginfo.getNumberData();
+
+			ActionDamage.applyDamage(nil, rActor, rRoll);
 			return true;
 		end
 

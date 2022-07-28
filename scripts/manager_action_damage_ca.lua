@@ -49,10 +49,15 @@ function getDamageTypesFromString(sDamageTypes)
 	return unpack(result);
 end
 
-function applyDamage(rSource, rTarget, bSecret, sDamage, nTotal)
+function applyDamage(rSource, rTarget, vRollOrSecret, sDamage, nTotal)
 	local sTargetNodeType, nodeTarget = ActorManager.getTypeAndNode(rTarget);
 	if not nodeTarget then
 		return;
+	end
+
+	if type(vRollOrSecret) == "table" then
+		sDamage = vRollOrSecret.sDesc;
+		nTotal = vRollOrSecret.nTotal;
 	end
 
 	ActionDamage.decodeDamageText(nTotal, sDamage);
@@ -74,7 +79,7 @@ function applyDamage(rSource, rTarget, bSecret, sDamage, nTotal)
 		end
 	end
 
-	return applyDamageOriginal(rSource, rTarget, bSecret, sDamage, nTotal);
+	return applyDamageOriginal(rSource, rTarget, vRollOrSecret, sDamage, nTotal);
 end
 
 function checkForTransfer()
@@ -146,9 +151,32 @@ function decodeDamageText(nDamage, sDamageDesc)
 	return decodeResult;
 end
 
-function messageDamage(rSource, rTarget, bSecret, sDamageType, sDamageDesc, sTotal, sExtraResult)
+function messageDamage(rSource, rTarget, vRollOrSecret, sDamageText, sDamageDesc, sTotal, sExtraResult)
 	local rComplexDamage = {};
 	local bIsHeal = false;
+	local bSecret, sDamageType, rRoll;
+
+	if type(vRollOrSecret) == "table" then
+		rRoll = vRollOrSecret;
+
+		bSecret = rRoll.bSecret;
+		sDamageType = rRoll.sType;
+		sDamageText = rRoll.sDamageText;
+		sDamageDesc = rRoll.sDesc;
+		sTotal = rRoll.nTotal;
+		sExtraResult = rRoll.sResults;
+	else
+		bSecret = vRollOrSecret;
+		
+		if sDamageText == "Recovery" then
+			sDamageType = "recovery";
+		elseif (sDamageText == "Heal") or (sDamageText == "Temporary hit points") then
+			sDamageType = "heal";
+		else
+			sDamageType = "damage";
+		end
+	end
+
 	if decodeResult and decodeResult.sType == "damage" then
 		-- Nothing to resolve for shared damage
 		if not string.match(sDamageDesc, "%[SHARED%]") then
@@ -176,19 +204,19 @@ function messageDamage(rSource, rTarget, bSecret, sDamageType, sDamageDesc, sTot
 		sExtraResult = sExtraResult .. " [SHARED]";
 	end
 
-	messageDamageOriginal(rSource, rTarget, bSecret, sDamageType, sDamageDesc, sTotal, sExtraResult);
+	messageDamageOriginal(rSource, rTarget, vRollOrSecret, sDamageText, sDamageDesc, sTotal, sExtraResult);
 
 	if rComplexDamage.nStolen and (rComplexDamage.nStolen > 0) then
 		local sDamage = "[HEAL][STOLEN]";
-		ActionDamage.applyDamage(rSource, rSource, bSecret, sDamage, rComplexDamage.nStolen);
+		ActionDamage.applyDamage(rSource, rSource, vRollOrSecret, sDamage, rComplexDamage.nStolen);
 	end
 	if rComplexDamage.nTempStolen and (rComplexDamage.nTempStolen > 0) then
 		local sDamage = "[HEAL][STOLEN][TEMP]";
-		ActionDamage.applyDamage(rSource, rSource, bSecret, sDamage, rComplexDamage.nTempStolen);
+		ActionDamage.applyDamage(rSource, rSource, vRollOrSecret, sDamage, rComplexDamage.nTempStolen);
 	end
 	if rComplexDamage.nTransfered and (rComplexDamage.nTransfered > 0) then
 		local sDamage = "[HEAL][TRANSFER]";
-		ActionDamage.applyDamage(rSource, rSource, bSecret, sDamage, rComplexDamage.nTransfered);
+		ActionDamage.applyDamage(rSource, rSource, vRollOrSecret, sDamage, rComplexDamage.nTransfered);
 	end
 	if rComplexDamage.rSharingTargets then
 		local nTotal = tonumber(sTotal);
@@ -197,7 +225,7 @@ function messageDamage(rSource, rTarget, bSecret, sDamageType, sDamageDesc, sTot
 			sDamage = "[HEAL][SHARED]";
 		end
 		for sSharingTarget,nRate in pairs(rComplexDamage.rSharingTargets) do
-			ActionDamage.applyDamage(rTarget, sSharingTarget, bSecret, sDamage, math.floor(nTotal * nRate));
+			ActionDamage.applyDamage(rTarget, sSharingTarget, vRollOrSecret, sDamage, math.floor(nTotal * nRate));
 		end
 	end
 end
