@@ -156,21 +156,16 @@ end
 
 function messageDamage(rSource, rTarget, vRollOrSecret, sDamageText, sDamageDesc, sTotal, sExtraResult)
 	local rComplexDamage = {};
-	local bIsHeal = false;
 	local rRoll;
 
 	if type(vRollOrSecret) == "table" then
 		rRoll = vRollOrSecret;
 
 		if rRoll.sType == "damage" then
-			-- Nothing to resolve for shared damage
-			if not string.match(rRoll.sDesc, "%[SHARED%]") then
-				resolveDamage(rSource, rTarget, rRoll, rComplexDamage);
-			end
+			resolveDamage(rSource, rTarget, rRoll, rComplexDamage);
 		elseif rRoll.sType == "recovery" then
 			rRoll.sDamageText = rRoll.sDamageText:gsub("%[HEAL", "[RECOVERY")
 		elseif rRoll.sType == "heal" then
-			bIsHeal = true;
 			if string.match(rRoll.sDesc, "%[STOLEN%]") then
 				rRoll.sResults = rRoll.sResults .. " [STOLEN]";
 			end
@@ -191,45 +186,76 @@ function messageDamage(rSource, rTarget, vRollOrSecret, sDamageText, sDamageDesc
 
 	if rRoll then
 		if rComplexDamage.nStolen and (rComplexDamage.nStolen > 0) then
-			local rNewRoll = UtilityManager.copyDeep(rRoll);
+			local rNewRoll = createShallowCopy(rRoll);
 			rNewRoll.sType = "heal";
 			rNewRoll.sDesc = "[HEAL][STOLEN]";
 			rNewRoll.nTotal = rComplexDamage.nStolen;
 			ActionDamage.applyDamage(rSource, rSource, rNewRoll);
 		end
 		if rComplexDamage.nTempStolen and (rComplexDamage.nTempStolen > 0) then
-			local rNewRoll = UtilityManager.copyDeep(rRoll);
+			local rNewRoll = createShallowCopy(rRoll);
 			rNewRoll.sType = "heal";
 			rNewRoll.sDesc = "[HEAL][STOLEN][TEMP]";
 			rNewRoll.nTotal = rComplexDamage.nTempStolen;
 			ActionDamage.applyDamage(rSource, rSource, rNewRoll);
 		end
 		if rComplexDamage.nTransfered and (rComplexDamage.nTransfered > 0) then
-			local rNewRoll = UtilityManager.copyDeep(rRoll);
+			local rNewRoll = createShallowCopy(rRoll);
 			rNewRoll.sType = "heal";
 			rNewRoll.sDesc = "[HEAL][TRANSFER]";
 			rNewRoll.nTotal = rComplexDamage.nTransfered;
 			ActionDamage.applyDamage(rSource, rSource, rNewRoll);
 		end
-		if rComplexDamage.rSharingTargets then
-			local rTempRoll = UtilityManager.copyDeep(rRoll);
-			rTempRoll.sDesc = "[SHARED]";
-			if bIsHeal then
-				rTempRoll.sDesc = "[HEAL][SHARED]";
-			end
-			for sSharingTarget,nRate in pairs(rComplexDamage.rSharingTargets) do
-				local rNewRoll = UtilityManager.copyDeep(rTempRoll);
-				rNewRoll.nTotal = math.floor(rRoll.nTotal * nRate);
-				ActionDamage.applyDamage(rTarget, sSharingTarget, rNewRoll);
-			end
+		if rComplexDamage.tSharingTargets then
+			shareDamageWithTargets(rTarget, rComplexDamage.tSharingTargets, rRoll)
 		end
 	end
+end
+
+function shareDamageWithTargets(rTarget, tSharingTargets, rRoll)
+	local bIsHeal = rRoll.nTotal < 0;
+	if bIsHeal then
+		rRoll.tSharedHealWith = rRoll.tSharedHealWith or {};
+		rRoll.tSharedHealWith[ActorManager.getCTNodeName(rTarget)] = true;
+	else
+		rRoll.tSharedDamageWith = rRoll.tSharedDamageWith or {};
+		rRoll.tSharedDamageWith[ActorManager.getCTNodeName(rTarget)] = true;
+	end
+
+	local rTempRoll = createShallowCopy(rRoll);
+	rTempRoll.sDesc = "[SHARED]";
+	if bIsHeal then
+		rTempRoll.sDesc = "[HEAL][SHARED]";
+	end
+	for sSharingTarget,nRate in pairs(tSharingTargets) do
+		tryShareDamage(rTarget, rTempRoll, sSharingTarget, nRate)
+	end
+end
+
+function tryShareDamage(rTarget, rRoll, sSharingTarget, nRate)
+	Debug.chat("tryShareDamage", rTarget, rRoll, sSharingTarget, nRate)
+	local rNewRoll = createShallowCopy(rRoll);
+	rNewRoll.nTotal = math.floor(rRoll.nTotal * nRate);
+
+	local bIsHeal = rNewRoll.nTotal < 0;
+	local tAlreadySharedWith;
+	if bIsHeal then
+		tAlreadySharedWith = rRoll.tSharedHealWith or {};
+	else
+		tAlreadySharedWith = rRoll.tSharedDamageWith or {};
+	end
+
+	if tAlreadySharedWith[sSharingTarget] then
+		return;
+	end
+
+	ActionDamage.applyDamage(rTarget, ActorManager.resolveActor(sSharingTarget), rNewRoll);
 end
 
 function resolveDamage(rSource, rTarget, rRoll, rComplexDamage)
 	local _,nodeTarget = ActorManager.getTypeAndNode(rTarget);
 	local nMax = 0;
-	for sTypes,nDamage in pairs(rRoll.aDamageTypes) do
+	for sTypes,nDamage in pairs(rRoll.aDamageTypes or{}) do
 		local aTemp = StringManager.split(sTypes, ",", true);
 		local bMax = false;
 		local nSteal = 0;
@@ -334,10 +360,10 @@ function resolveShared(rTarget, rComplexDamage, bIsHeal)
 
 				local rEffectComp = EffectManager5E.parseEffectComp(aEffectComps[i]);
 				if rEffectComp.type == sCheckFor then
-					rComplexDamage.rSharingTargets = rComplexDamage.rSharingTargets or {};
+					rComplexDamage.tSharingTargets = rComplexDamage.tSharingTargets or {};
 					for _,sSharingTarget in ipairs(getSharingTargets(sTargetPath, nodeEffect)) do
-						rComplexDamage.rSharingTargets[sSharingTarget]
-							= (rComplexDamage.rSharingTargets[sSharingTarget] or 0) + rEffectComp.mod;
+						rComplexDamage.tSharingTargets[sSharingTarget]
+							= (rComplexDamage.tSharingTargets[sSharingTarget] or 0) + rEffectComp.mod;
 					end
 				end
 			end
@@ -360,4 +386,12 @@ function tryAddSharingTarget(aTargets, sActorPath, sTargetPath)
 	if ((sTargetPath or "") ~= "") and (sTargetPath ~= sActorPath) then
 		table.insert(aTargets, sTargetPath);
 	end
+end
+
+function createShallowCopy(rRoll)
+	local rNewRoll = {};
+	for sName, vValue in pairs(rRoll) do
+		rNewRoll[sName] = vValue;
+	end
+	return rNewRoll;
 end
