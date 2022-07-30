@@ -220,7 +220,7 @@ function messageDamage(rSource, rTarget, vRollOrSecret, sDamageText, sDamageDesc
 			for sSharingTarget,nRate in pairs(rComplexDamage.rSharingTargets) do
 				local rNewRoll = UtilityManager.copyDeep(rTempRoll);
 				rNewRoll.nTotal = math.floor(rRoll.nTotal * nRate);
-				ActionDamage.applyDamage(rTarget, sSharingTarget, rNewRoll);
+				ActionDamage.applyDamage(rTarget, ActorManager.resolveActor(sSharingTarget), rNewRoll);
 			end
 		end
 	end
