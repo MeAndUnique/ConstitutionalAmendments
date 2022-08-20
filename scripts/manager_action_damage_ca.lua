@@ -229,7 +229,7 @@ end
 function resolveDamage(rSource, rTarget, rRoll, rComplexDamage)
 	local _,nodeTarget = ActorManager.getTypeAndNode(rTarget);
 	local nMax = 0;
-	for sTypes,nDamage in pairs(rRoll.aDamageTypes) do
+	for sTypes,nDamage in pairs(rRoll.aDamageTypes or{}) do
 		local aTemp = StringManager.split(sTypes, ",", true);
 		local bMax = false;
 		local nSteal = 0;

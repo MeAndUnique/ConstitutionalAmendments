@@ -22,16 +22,16 @@
 		<sheetdata>
 			<!-- Shift HP and Temp right, move Wnd to where HP was -->
 			<label_ct name="label_hp">
-				<anchored to="header_labels" position="insidetopright" offset="55,3" width="30" />
+				<anchored to="header_labels" position="insidetopright" offset="218,3" width="30" />
 				<!-- Be more specific about Max HP -->
 				<static textres="ct_label_max" />
 				<tooltip textres="ct_tooltip_max" />
 			</label_ct>
 			<label_ct name="label_temp">
-				<anchored to="header_labels" position="insidetopright" offset="15,3" width="30" />
+				<anchored to="header_labels" position="insidetopright" offset="178,3" width="30" />
 			</label_ct>
 			<label_ct name="label_wounds">
-				<anchored to="header_labels" position="insidetopright" offset="95,3" width="30" />
+				<anchored to="header_labels" position="insidetopright" offset="258,3" width="30" />
 			</label_ct>
 		</sheetdata>
 	</windowclass>

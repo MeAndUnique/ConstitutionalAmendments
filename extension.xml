@@ -84,6 +84,14 @@ Icons made by Smashicons from www.flaticon.com
 
 		<!-- adds templates for smart fields that support fine-grained update handling -->
 		<includefile source ="utility/smart_field.xml" />
+
+		<script name="PowerUpCA">
+			function onInit()
+				if PowerUp then
+					PowerUp.registerExtension("Constitutional Amendments", "dev_version");
+				end
+			end
+		</script>
 	</base>
 
 	<announcement text="Constitutional Amendments dev_version for 5E by MeAndUnique.\r\nCurrent HP functionality designed and implemented by Tielc; FGU fixes by Zuilin." icon="CA_icon" font="emotefont" />
