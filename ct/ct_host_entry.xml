@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+	<windowclass name="ct_entry" merge="join">
+		<sheetdata>
+			<!-- Shift HP and Temp right, move Wnd to where HP was -->
+			<number_ct_crosslink name="hptemp" insertbefore="initresult">
+				<tabtarget prev="hptemp" next="strength" />
+			</number_ct_crosslink>
+			<number_ct_crosslink name="hptotal" insertbefore="initresult">
+				<script>
+					function onValueChanged()
+						if super and super.onValueChanged then
+							super.onValueChanged();
+						end
+						HpManager.recalculateAdjust(window.link.getTargetDatabaseNode());
+					end
+				</script>
+				<tabtarget prev="wounds" next="hptemp" />
+			</number_ct_crosslink>
+			
+			<!-- Remove the wounds field -->
+			<number_ct_crosslink name="wounds" merge="delete" />
+			<!-- And replace it with a field that can toggle between wounds and current -->
+			<dynamic_hp_basic name="wounds" insertbefore="initresult">
+				<anchored to="rightanchor" width="30" height="20">
+					<top />
+					<right anchor="left" relation="relative" offset="-10" />
+				</anchored>
+				<tabtarget prev="initresult" next="hptotal" />
+			</dynamic_hp_basic>
+		</sheetdata>
+	</windowclass>
+</root>

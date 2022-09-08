@@ -33,16 +33,16 @@
 	<windowclass name="client_ct_entry" merge="join">
 		<sheetdata>
 			<!-- Shift HP and Temp right, move Wnd to where HP was -->
-			<number_clientct_hptemp name="hptemp" insertbefore="wounds">
+			<number_clientct_hptemp name="hptemp">
 				<anchored to="friendfoe" position="lefthigh" offset="-10,0" width="30" height="20" />
 			</number_clientct_hptemp>
-			<number_clientct_hp name="hptotal" insertbefore="wounds">
+			<number_clientct_hp name="hptotal">
 				<anchored to="hptemp" width="30" height="20">
 					<top />
 					<right anchor="left" offset="-10" />
 				</anchored>
 			</number_clientct_hp>
-			
+
 			<!-- Remove the wounds field -->
 			<number_clientct_wounds name="wounds" merge="delete" />
 			<!-- And replace it with a field that can toggle between wounds and current -->

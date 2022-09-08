@@ -75,9 +75,13 @@ Icons made by Smashicons from www.flaticon.com
 
 		<!-- updates the combat tracker to add support for max PC HP adjustments as well as toggling between wounds and current HP, for the host -->
 		<includefile source="ct/ct_host.xml" />
+		<includefile source="ct/ct_host_entry.xml" />
+		<includefile source="ct/ct_host_entry_section.xml" />
 
 		<!-- updates the combat tracker to add support for max PC HP adjustments as well as toggling between wounds and current HP, for the client -->
 		<includefile source="ct/ct_client.xml" />
+		<includefile source="ct/ct_client_entry.xml" />
+		<includefile source="ct/ct_client_entry_section.xml" />
 
 		<!-- adds a template for a number field that can toggle between showing wounds and showing current HP -->
 		<includefile source ="utility/template_hp.xml" />

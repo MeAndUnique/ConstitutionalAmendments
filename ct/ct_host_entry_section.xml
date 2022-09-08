@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+	<windowclass name="ct_effect" merge="join">
+		<sheetdata>
+			<button_ct_effect_isactive name="isactive">
+				<script>
+					function onClickRelease(button, x, y)
+						local result = super and super.onClickRelease and super.onClickRelease(button, x, y);
+						local sLabel = window.label.getValue();
+						if (getValue() == 1) and (sLabel:match("CON%:") or sLabel:match("MAXHP%:")) then
+							setValue(0);
+							result = true;
+						end
+						return result;
+					end
+				</script>
+			</button_ct_effect_isactive>
+		</sheetdata>
+	</windowclass>
+</root>
