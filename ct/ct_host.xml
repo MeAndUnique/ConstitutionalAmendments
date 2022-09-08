@@ -21,28 +21,27 @@
 		</script>
 		<sheetdata>
 			<!-- Shift HP and Temp right, move Wnd to where HP was -->
-			<label_ct name="label_hp">
-				<anchored to="header_labels" position="insidetopright" offset="218,3" width="30" />
+			<label_ct_right name="label_temp" insertbefore="label_init" />
+			<label_ct_right name="label_hp" insertbefore="label_init">
 				<!-- Be more specific about Max HP -->
 				<static textres="ct_label_max" />
 				<tooltip textres="ct_tooltip_max" />
-			</label_ct>
-			<label_ct name="label_temp">
-				<anchored to="header_labels" position="insidetopright" offset="178,3" width="30" />
-			</label_ct>
-			<label_ct name="label_wounds">
-				<anchored to="header_labels" position="insidetopright" offset="258,3" width="30" />
-			</label_ct>
+			</label_ct_right>
+			<label_ct_right name="label_wounds" merge="delete" />
+			<label_ct_right name="label_wounds" insertbefore="label_init">
+				<static textres="ct_label_wounds" />
+				<tooltip textres="ct_tooltip_wounds" />
+			</label_ct_right>
 		</sheetdata>
 	</windowclass>
 
 	<windowclass name="ct_entry" merge="join">
 		<sheetdata>
 			<!-- Shift HP and Temp right, move Wnd to where HP was -->
-			<number_ct_crosslink name="hptemp" insertbefore="wounds">
+			<number_ct_crosslink name="hptemp" insertbefore="initresult">
 				<tabtarget prev="hptemp" next="strength" />
 			</number_ct_crosslink>
-			<number_ct_crosslink name="hptotal" insertbefore="wounds">
+			<number_ct_crosslink name="hptotal" insertbefore="initresult">
 				<script>
 					function onValueChanged()
 						if super and super.onValueChanged then
