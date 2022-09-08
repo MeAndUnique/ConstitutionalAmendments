@@ -21,8 +21,7 @@
 		</script>
 		<sheetdata>
 			<!-- Shift HP and Temp right, move Wnd to where HP was -->
-			<label_ct_right name="label_temp" insertbefore="label_init" />
-			<label_ct_right name="label_hp" insertbefore="label_init">
+			<label_ct_right name="label_hp">
 				<!-- Be more specific about Max HP -->
 				<static textres="ct_label_max" />
 				<tooltip textres="ct_tooltip_max" />
@@ -32,55 +31,6 @@
 				<static textres="ct_label_wounds" />
 				<tooltip textres="ct_tooltip_wounds" />
 			</label_ct_right>
-		</sheetdata>
-	</windowclass>
-
-	<windowclass name="ct_entry" merge="join">
-		<sheetdata>
-			<!-- Shift HP and Temp right, move Wnd to where HP was -->
-			<number_ct_crosslink name="hptemp" insertbefore="initresult">
-				<tabtarget prev="hptemp" next="strength" />
-			</number_ct_crosslink>
-			<number_ct_crosslink name="hptotal" insertbefore="initresult">
-				<script>
-					function onValueChanged()
-						if super and super.onValueChanged then
-							super.onValueChanged();
-						end
-						HpManager.recalculateAdjust(window.link.getTargetDatabaseNode());
-					end
-				</script>
-				<tabtarget prev="hptemp" next="wounds" />
-			</number_ct_crosslink>
-			
-			<!-- Remove the wounds field -->
-			<number_ct_crosslink name="wounds" merge="delete" />
-			<!-- And replace it with a field that can toggle between wounds and current -->
-			<dynamic_hp_basic name="wounds" insertbefore="initresult">
-				<anchored to="rightanchor" width="30" height="20">
-					<top />
-					<right anchor="left" relation="relative" offset="-10" />
-				</anchored>
-				<tabtarget prev="initresult" next="hptemp" />
-			</dynamic_hp_basic>
-		</sheetdata>
-	</windowclass>
-
-	<windowclass name="ct_effect" merge="join">
-		<sheetdata>
-			<button_ct_effect_isactive name="isactive">
-				<script>
-					function onClickRelease(button, x, y)
-						local result = super and super.onClickRelease and super.onClickRelease(button, x, y);
-						local sLabel = window.label.getValue();
-						if (getValue() == 1) and (sLabel:match("CON%:") or sLabel:match("MAXHP%:")) then
-							setValue(0);
-							result = true;
-						end
-						return result;
-					end
-				</script>
-			</button_ct_effect_isactive>
 		</sheetdata>
 	</windowclass>
 </root>
