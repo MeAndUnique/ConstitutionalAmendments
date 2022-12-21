@@ -48,20 +48,13 @@ function getDamageTypesFromString(sDamageTypes)
 	return unpack(result);
 end
 
-function applyDamage(rSource, rTarget, vRollOrSecret, sDamage, nTotal)
+function applyDamage(rSource, rTarget, rRoll)
 	local sTargetNodeType, nodeTarget = ActorManager.getTypeAndNode(rTarget);
 	if not nodeTarget then
 		return;
 	end
 
-	local rRoll;
-	if type(vRollOrSecret) == "table" then
-		rRoll = vRollOrSecret;
-		sDamage = vRollOrSecret.sDesc;
-		nTotal = vRollOrSecret.nTotal;
-	end
-
-	local decodeResult = ActionDamage.decodeDamageText(nTotal, sDamage);
+	local decodeResult = ActionDamage.decodeDamageText(rRoll.nTotal, rRoll.sDesc);
 	if rRoll then
 		rRoll.aDamageTypes = decodeResult.aDamageTypes;
 	end
@@ -74,16 +67,16 @@ function applyDamage(rSource, rTarget, vRollOrSecret, sDamage, nTotal)
 				rSource = rSwap;
 			end
 		elseif decodeResult.sType == "heal" then
-			if string.match(sDamage, "%[HEAL") and string.match(sDamage, "%[MAX%]") then
-				applyMaxHeal(rTarget, nTotal);
+			if string.match(rRoll.sDesc, "%[HEAL") and string.match(rRoll.sDesc, "%[MAX%]") then
+				applyMaxHeal(rTarget, rRoll.nTotal);
 			end
 		elseif decodeResult.sType == "recovery" and (sTargetNodeType ~= "pc") then
 			-- Hijack NPC recovery, since it doesn't work in the ruleset anyway.
-			sDamage = applyNPCRecovery(nodeTarget, sDamage);
+			rRoll.sDesc = applyNPCRecovery(nodeTarget, rRoll.sDesc);
 		end
 	end
 
-	return applyDamageOriginal(rSource, rTarget, vRollOrSecret, sDamage, nTotal);
+	return applyDamageOriginal(rSource, rTarget, rRoll);
 end
 
 function checkForTransfer(decodeResult)
@@ -154,84 +147,77 @@ function decodeDamageText(nDamage, sDamageDesc)
 	return decodeResult;
 end
 
-function messageDamage(rSource, rTarget, vRollOrSecret, sDamageText, sDamageDesc, sTotal, sExtraResult)
+function messageDamage(rSource, rTarget, rRoll)
 	local rComplexDamage = {};
 	local bIsHeal = false;
-	local rRoll;
-
-	if type(vRollOrSecret) == "table" then
-		rRoll = vRollOrSecret;
-
-		if rRoll.sType == "damage" then
-			-- Nothing to resolve for shared damage
-			if not string.match(rRoll.sDesc, "%[SHARED%]") then
-				resolveDamage(rSource, rTarget, rRoll, rComplexDamage);
-			end
-		elseif rRoll.sType == "recovery" then
-			rRoll.sDamageText = rRoll.sDamageText:gsub("%[HEAL", "[RECOVERY")
-		elseif rRoll.sType == "heal" then
-			bIsHeal = true;
-			if string.match(rRoll.sDesc, "%[STOLEN%]") then
-				rRoll.sResults = rRoll.sResults .. " [STOLEN]";
-			end
-			if string.match(rRoll.sDesc, "%[TRANSFER%]") then
-				rRoll.sResults = rRoll.sResults .. " [TRANSFER]";
-			end
-			if not string.match(rRoll.sDesc, "%[MAX%]") then
-				resolveShared(rTarget, rComplexDamage, true);
-			end
+	if rRoll.sType == "damage" then
+		-- Nothing to resolve for shared damage
+		if not string.match(rRoll.sDesc, "%[SHARED%]") then
+			resolveDamage(rSource, rTarget, rRoll, rComplexDamage);
 		end
-
-		if string.match(rRoll.sDesc, "%[SHARED%]") then
-			rRoll.sResults = rRoll.sResults .. " [SHARED]";
+	elseif rRoll.sType == "recovery" then
+		rRoll.sDamageText = rRoll.sDamageText:gsub("%[HEAL", "[RECOVERY")
+	elseif rRoll.sType == "heal" then
+		bIsHeal = true;
+		if string.match(rRoll.sDesc, "%[STOLEN%]") then
+			rRoll.sResults = rRoll.sResults .. " [STOLEN]";
+		end
+		if string.match(rRoll.sDesc, "%[TRANSFER%]") then
+			rRoll.sResults = rRoll.sResults .. " [TRANSFER]";
+		end
+		if not string.match(rRoll.sDesc, "%[MAX%]") then
+			resolveShared(rTarget, rComplexDamage, true);
 		end
 	end
 
-	messageDamageOriginal(rSource, rTarget, vRollOrSecret, sDamageText, sDamageDesc, sTotal, sExtraResult);
+	if string.match(rRoll.sDesc, "%[SHARED%]") then
+		rRoll.sResults = rRoll.sResults .. " [SHARED]";
+	end
 
-	if rRoll then
-		if rComplexDamage.nStolen and (rComplexDamage.nStolen > 0) then
-			local rNewRoll = UtilityManager.copyDeep(rRoll);
-			rNewRoll.sType = "heal";
-			rNewRoll.sDesc = "[HEAL][STOLEN]";
-			rNewRoll.nTotal = rComplexDamage.nStolen;
-			ActionDamage.applyDamage(rSource, rSource, rNewRoll);
+	messageDamageOriginal(rSource, rTarget, rRoll);
+
+	if rComplexDamage.nStolen and (rComplexDamage.nStolen > 0) then
+		local rNewRoll = UtilityManager.copyDeep(rRoll);
+		rNewRoll.sType = "heal";
+		rNewRoll.sDesc = "[HEAL][STOLEN]";
+		rNewRoll.nTotal = rComplexDamage.nStolen;
+		ActionDamage.applyDamage(rSource, rSource, rNewRoll);
+	end
+	if rComplexDamage.nTempStolen and (rComplexDamage.nTempStolen > 0) then
+		local rNewRoll = UtilityManager.copyDeep(rRoll);
+		rNewRoll.sType = "heal";
+		rNewRoll.sDesc = "[HEAL][STOLEN][TEMP]";
+		rNewRoll.nTotal = rComplexDamage.nTempStolen;
+		ActionDamage.applyDamage(rSource, rSource, rNewRoll);
+	end
+	if rComplexDamage.nTransfered and (rComplexDamage.nTransfered > 0) then
+		local rNewRoll = UtilityManager.copyDeep(rRoll);
+		rNewRoll.sType = "heal";
+		rNewRoll.sDesc = "[HEAL][TRANSFER]";
+		rNewRoll.nTotal = rComplexDamage.nTransfered;
+		ActionDamage.applyDamage(rSource, rSource, rNewRoll);
+	end
+	if rComplexDamage.rSharingTargets then
+		local rTempRoll = UtilityManager.copyDeep(rRoll);
+		rTempRoll.sDesc = "[SHARED]";
+		if bIsHeal then
+			rTempRoll.sDesc = "[HEAL][SHARED]";
 		end
-		if rComplexDamage.nTempStolen and (rComplexDamage.nTempStolen > 0) then
-			local rNewRoll = UtilityManager.copyDeep(rRoll);
-			rNewRoll.sType = "heal";
-			rNewRoll.sDesc = "[HEAL][STOLEN][TEMP]";
-			rNewRoll.nTotal = rComplexDamage.nTempStolen;
-			ActionDamage.applyDamage(rSource, rSource, rNewRoll);
-		end
-		if rComplexDamage.nTransfered and (rComplexDamage.nTransfered > 0) then
-			local rNewRoll = UtilityManager.copyDeep(rRoll);
-			rNewRoll.sType = "heal";
-			rNewRoll.sDesc = "[HEAL][TRANSFER]";
-			rNewRoll.nTotal = rComplexDamage.nTransfered;
-			ActionDamage.applyDamage(rSource, rSource, rNewRoll);
-		end
-		if rComplexDamage.rSharingTargets then
-			local rTempRoll = UtilityManager.copyDeep(rRoll);
-			rTempRoll.sDesc = "[SHARED]";
-			if bIsHeal then
-				rTempRoll.sDesc = "[HEAL][SHARED]";
-			end
-			for sSharingTarget,nRate in pairs(rComplexDamage.rSharingTargets) do
-				local rNewRoll = UtilityManager.copyDeep(rTempRoll);
-				rNewRoll.nTotal = math.floor(rRoll.nTotal * nRate);
-				ActionDamage.applyDamage(rTarget, ActorManager.resolveActor(sSharingTarget), rNewRoll);
-			end
+		for sSharingTarget,nRate in pairs(rComplexDamage.rSharingTargets) do
+			local rNewRoll = UtilityManager.copyDeep(rTempRoll);
+			rNewRoll.nTotal = math.floor(rRoll.nTotal * nRate);
+			ActionDamage.applyDamage(rTarget, ActorManager.resolveActor(sSharingTarget), rNewRoll);
 		end
 	end
 end
 
 function resolveDamage(rSource, rTarget, rRoll, rComplexDamage)
 	local _,nodeTarget = ActorManager.getTypeAndNode(rTarget);
-	local nMax = 0;
+	local nMaxTotal = 0;
 	for sTypes,nDamage in pairs(rRoll.aDamageTypes or{}) do
 		local aTemp = StringManager.split(sTypes, ",", true);
-		local bMax = false;
+		local nMax = 0;
+		local bCheckMax = false;
 		local nSteal = 0;
 		local bCheckSteal = false;
 		local nTempSteal = 0;
@@ -239,12 +225,12 @@ function resolveDamage(rSource, rTarget, rRoll, rComplexDamage)
 		local nTransfer = 0;
 		local bCheckTransfer = false;
 		for _,type in ipairs(aTemp) do
-			bMax = bMax or type == "max";
-
-			if bCheckSteal or bCheckTempSteal or bCheckTransfer then
+			if bCheckMax or bCheckSteal or bCheckTempSteal or bCheckTransfer then
 				local sRate = string.match(type, DAMAGE_RATE_PATTERN);
 				if sRate then
-					if bCheckSteal then
+					if bCheckMax then
+						nMax = tonumber(sRate);
+					elseif bCheckSteal then
 						nSteal = tonumber(sRate);
 					elseif bCheckTempSteal then
 						nTempSteal = tonumber(sRate);
@@ -257,25 +243,26 @@ function resolveDamage(rSource, rTarget, rRoll, rComplexDamage)
 				bCheckTransfer = false;
 			end
 
-			if type == "steal" then
+			if type == "max" then
+				nMax = 1;
+				bCheckMax = true;
+			elseif type == "steal" then
 				nSteal = 1;
 				bCheckSteal = true;
 			elseif type == "hsteal" then
 				nSteal = 0.5;
-			end
-			if type == "stealtemp" then
+			elseif type == "stealtemp" then
 				nTempSteal = 1;
 				bCheckTempSteal = true;
 			elseif type == "hstealtemp" then
 				nTempSteal = 0.5;
-			end
-			if type == "transfer" then
+			elseif type == "transfer" then
 				nTransfer = 1;
 				bCheckTransfer = true;
 			end
 		end
 
-		if bMax or (nSteal > 0) or (nTempSteal > 0) or (nTransfer > 0) then
+		if (nMax > 0) or (nSteal > 0) or (nTempSteal > 0) or (nTransfer > 0) then
 			local rDamageOutput = {aDamageTypes={[sTypes]=nDamage}, nVal=nDamage, tNotifications={}};
 			local nDamageAdjust = ActionDamage.getDamageAdjust(rSource, rTarget, nDamage, rDamageOutput);
 			nDamageAdjust = nDamageAdjust + nDamage;
@@ -283,14 +270,14 @@ function resolveDamage(rSource, rTarget, rRoll, rComplexDamage)
 			rComplexDamage.nTempStolen = (rComplexDamage.nTempStolen or 0) + math.floor(nDamageAdjust * nTempSteal)
 			rComplexDamage.nTransfered = (rComplexDamage.nTransfered or 0) + math.floor(nDamageAdjust * nTransfer)
 
-			if bMax and (nDamageAdjust > 0) then
-				nMax = nMax + nDamageAdjust;
+			if (nMax > 0) and (nDamageAdjust > 0) then
+				nMaxTotal = nMaxTotal + (nMax * nDamageAdjust);
 			end
 		end
 	end
 
-	if nMax > 0 then
-		resolveMaxDamage(nMax, rRoll, nodeTarget);
+	if nMaxTotal > 0 then
+		resolveMaxDamage(nMaxTotal, rRoll, nodeTarget);
 	end
 
 	resolveShared(rTarget, rComplexDamage, false);
