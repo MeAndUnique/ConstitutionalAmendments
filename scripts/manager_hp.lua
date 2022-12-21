@@ -61,6 +61,7 @@ function onInit()
 		DB.addHandler("charsheet.*.featlist.*.hpadd", "onUpdate", onAbilityHPChanged);
 		DB.addHandler("charsheet.*.featurelist.*.hpadd", "onUpdate", onAbilityHPChanged);
 		DB.addHandler("charsheet.*.traitlist.*.hpadd", "onUpdate", onAbilityHPChanged);
+		DB.addHandler("charsheet.*.hp.peasant", "onUpdate", onPeasantHpChanged);
 		DB.addHandler(CombatManager.CT_COMBATANT_PATH .. ".effects", "onChildUpdate", onCombatantEffectUpdated);
 
 		initializeTotalHitPoints()
@@ -80,6 +81,7 @@ function onClose()
 	DB.removeHandler("charsheet.*.featlist.*.hpadd", "onUpdate", onAbilityHPChanged);
 	DB.removeHandler("charsheet.*.featurelist.*.hpadd", "onUpdate", onAbilityHPChanged);
 	DB.removeHandler("charsheet.*.traitlist.*.hpadd", "onUpdate", onAbilityHPChanged);
+	DB.removeHandler("charsheet.*.hp.peasant", "onUpdate", onPeasantHpChanged);
 	DB.removeHandler(CombatManager.CT_COMBATANT_PATH .. ".effects", "onChildUpdate", onCombatantEffectUpdated);
 end
 
@@ -153,9 +155,9 @@ function onHitDiceChanged(nodeHD)
 
 	local nodeClass = nodeHD.getParent();
 	local nodeChar = nodeClass.getChild("...");
-	local bFirstLevel = DB.getValue(nodeChar, "hp.base", 0) == 0;
-	if bFirstLevel then
-		local nValue = getHpRoll(nodeClass, true, 1);
+	local bFirstLevel = DB.getValue(nodeChar, "level", 1) == 1;
+	if DB.getValue(nodeClass, "level", 0) ~= DB.getChildCount(nodeClass, "rolls") then
+		local nValue = getHpRoll(nodeClass, bFirstLevel, 1);
 		DB.setValue(nodeClass, getRollNodePath(1), "number", nValue);
 	end
 end
@@ -173,20 +175,10 @@ function onLevelChanged(nodeLevel)
 		nOffset = DB.getChildCount(nodeClass, "rolls") - nLevel;
 	end
 
-	local bFirstLevel = DB.getValue(nodeChar, "hp.base", 0) == 0;
 	if nOffset > 0 then
-		for i=nLevel+1,nLevel+nOffset do
-			DB.deleteNode(nodeClass.getPath(getRollNodePath(i)))
-			DB.deleteNode(nodeChar.getPath("hp.discrepancy"));
-		end
+		removeRolls(nodeChar, nodeClass, nLevel);
 	else
-		for i=nLevel+nOffset+1, nLevel do
-			local nValue = getHpRoll(nodeClass, bFirstLevel, i);
-			bFirstLevel = false;
-			if nValue > 0 then
-				DB.setValue(nodeClass, getRollNodePath(i), "number", nValue);
-			end
-		end
+		addRolls(nodeChar, nodeClass, nLevel);
 	end
 
 	if not bAddingInfo then
@@ -202,6 +194,11 @@ end
 
 function onAbilityHPChanged(nodeHP)
 	local nodeChar = nodeHP.getChild("....");
+	recalculateBase(nodeChar);
+end
+
+function onPeasantHpChanged(nodeHP)
+	local nodeChar = nodeHP.getChild("...");
 	recalculateBase(nodeChar);
 end
 
@@ -331,6 +328,7 @@ function recalculateBase(nodeChar)
 	local nConBonus = DB.getValue(nodeChar, "abilities.constitution.bonus", 0);
 	local nMiscCharBonus = getMiscellaneousCharacterHpBonus(nodeChar);
 	local nSum = DB.getValue(nodeChar, "hp.discrepancy", 0);
+	nSum = nSum + getPeasantHp(nodeChar);
 	for _,nodeClass in pairs(DB.getChildren(nodeChar, "classes")) do
 		local nMiscClassBonus = getMiscellaneousClassHpBonus(nodeChar, nodeClass);
 		for _,nodeRoll in pairs(DB.getChildren(nodeClass, "rolls")) do
@@ -360,6 +358,14 @@ end
 function getEffectAdjustment(nodeChar)
 	local nMod = EffectManager5E.getEffectsBonus(nodeChar, "MAXHP", true);
 	return nMod;
+end
+
+function getPeasantHp(nodeChar)
+	local result = 0;
+	if PeasantManager and PeasantManager.isPeasant(nodeChar) then
+		result = DB.getValue(nodeChar, "hp.peasant", 0);
+	end
+	return result;
 end
 
 function getTotalLevel(nodeChar)
@@ -428,6 +434,36 @@ function getAverageHp(nHDMult, nHDSides)
 	return math.floor(((nHDMult * (nHDSides + 1)) / 2) + 0.5);
 end
 
+function removeRolls(nodeChar, nodeClass, nCharLevel)
+	for _,nodeRoll in pairs(DB.getChildren(nodeClass, "rolls")) do
+		local nRollLevel = getRollNodeLevel(nodeRoll);
+		if nRollLevel > nCharLevel then
+			nodeRoll.delete();
+		end
+	end
+	DB.deleteNode(nodeChar.getPath("hp.discrepancy"));
+end
+
+function addRolls(nodeChar, nodeClass, nCharLevel)
+	local tExisting = {}
+	for _,nodeRoll in pairs(DB.getChildren(nodeClass, "rolls")) do
+		local nRollLevel = getRollNodeLevel(nodeRoll);
+		tExisting[nRollLevel] = true;
+	end
+
+	local bFirstLevel = DB.getValue(nodeChar, "level", 0) == 0;
+	for nLevel = 1, nCharLevel do
+		if not tExisting[nLevel] then
+			local nValue = getHpRoll(nodeClass, bFirstLevel, nLevel);
+			bFirstLevel = false;
+			if nValue > 0 then
+				DB.setValue(nodeClass, getRollNodePath(i), "number", nValue);
+			end
+		end
+	end
+	DB.deleteNode(nodeChar.getPath("hp.discrepancy"));
+end
+
 function getHpRoll(nodeClass, bFirstLevel, nClassLevel)
 	local nValue = 0;
 	local aDice = DB.getValue(nodeClass, "hddie");
@@ -446,6 +482,12 @@ end
 
 function getRollNodePath(nLevel)
 	return string.format("rolls.lvl-%03d", nLevel);
+end
+
+function getRollNodeLevel(nodeRoll)
+	local sName = nodeRoll.getName();
+	local sLevel = sName:match("(%d+)");
+	return tonumber(sLevel) or 0;
 end
 
 function notifyRollHp(nodeClass, nClassLevel)
