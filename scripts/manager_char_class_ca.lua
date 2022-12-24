@@ -3,11 +3,22 @@
 -- attribution and copyright information.
 --
 
+local helperAddClassHPOriginal;
 local applyDraconicResilienceOriginal;
 
 function onInit()
+	helperAddClassHPOriginal = CharClassManager.helperAddClassHP;
+	CharClassManager.helperAddClassHP = helperAddClassHP;
+
 	applyDraconicResilienceOriginal = CharClassManager.applyDraconicResilience;
 	CharClassManager.applyDraconicResilience = applyDraconicResilience;
+end
+
+function helperAddClassHP(rAdd)
+	HpManager.beginCalculating();
+	helperAddClassHPOriginal(rAdd);
+	HpManager.recalculateBase(rAdd.nodeSource);
+	HpManager.endCalculating();
 end
 
 function applyDraconicResilience(nodeChar, bInitialAdd)

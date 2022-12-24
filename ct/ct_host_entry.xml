@@ -7,14 +7,6 @@
 				<tabtarget prev="hptemp" next="strength" />
 			</number_ct_crosslink>
 			<number_ct_crosslink name="hptotal" insertbefore="initresult">
-				<script>
-					function onValueChanged()
-						if super and super.onValueChanged then
-							super.onValueChanged();
-						end
-						HpManager.recalculateAdjust(window.link.getTargetDatabaseNode());
-					end
-				</script>
 				<tabtarget prev="wounds" next="hptemp" />
 			</number_ct_crosslink>
 			
