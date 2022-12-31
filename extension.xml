@@ -89,9 +89,6 @@ Icons made by Smashicons from www.flaticon.com
 		<!-- adds a template for a number field that can toggle between showing wounds and showing current HP -->
 		<includefile source ="utility/template_hp.xml" />
 
-		<!-- adds templates for smart fields that support fine-grained update handling -->
-		<includefile source ="utility/smart_field.xml" />
-
 		<script name="PowerUpCA">
 			function onInit()
 				if PowerUp then

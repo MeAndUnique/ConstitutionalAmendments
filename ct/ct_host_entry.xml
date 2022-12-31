@@ -2,6 +2,9 @@
 <root>
 	<windowclass name="ct_entry" merge="join">
 		<sheetdata>
+			<hnx name="hp" />
+			<hnx name="hpadjust" />
+
 			<!-- Shift HP and Temp right, move Wnd to where HP was -->
 			<number_ct_crosslink name="hptemp" insertbefore="initresult">
 				<tabtarget prev="hptemp" next="strength" />

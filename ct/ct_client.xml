@@ -29,46 +29,4 @@
 			<label_ct_right name="label_temp" insertbefore="label_wounds" />
 		</sheetdata>
 	</windowclass>
-
-	<windowclass name="client_ct_entry" merge="join">
-		<sheetdata>
-			<!-- Shift HP and Temp right, move Wnd to where HP was -->
-			<number_clientct_hptemp name="hptemp">
-				<anchored to="friendfoe" position="lefthigh" offset="-10,0" width="30" height="20" />
-			</number_clientct_hptemp>
-			<number_clientct_hp name="hptotal">
-				<anchored to="hptemp" width="30" height="20">
-					<top />
-					<right anchor="left" offset="-10" />
-				</anchored>
-			</number_clientct_hp>
-
-			<!-- Remove the wounds field -->
-			<number_clientct_wounds name="wounds" merge="delete" />
-			<!-- And replace it with a field that can toggle between wounds and current -->
-			<dynamic_hp_simple name="wounds" insertbefore="initresult">
-				<anchored to="friendfoe" position="lefthigh" offset="90,0" width="30" height="20" />
-				<frame name="fieldlight" offset="7,5,7,5" />
-				<readonly />
-			</dynamic_hp_simple>
-		</sheetdata>
-	</windowclass>
-
-	<windowclass name="clientct_effect" merge="join">
-		<sheetdata>
-			<button_clientct_effect_isactive name="isactive">
-				<script>
-					function onClickRelease(button, x, y)
-						local result = super and super.onClickRelease and super.onClickRelease(button, x, y);
-						local sLabel = window.label.getValue();
-						if (getValue() == 1) and (sLabel:match("CON%:") or sLabel:match("MAXHP%:")) then
-							setValue(0);
-							result = true;
-						end
-						return result;
-					end
-				</script>
-			</button_clientct_effect_isactive>
-		</sheetdata>
-	</windowclass>
 </root>

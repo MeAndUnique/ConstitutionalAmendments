@@ -224,7 +224,7 @@ function onCombatantBaseHpChanged(nodeHP)
 	end
 
 	local nodeChar = nodeHP.getChild("..");
-	if not ActorManager.isPC() then
+	if not ActorManager.isPC(nodeChar) then
 		recalculateTotal(nodeChar);
 	end
 end
@@ -235,7 +235,7 @@ function onCombatantAdjustHpChanged(nodeHP)
 	end
 
 	local nodeChar = nodeHP.getChild("..");
-	if not ActorManager.isPC() then
+	if not ActorManager.isPC(nodeChar) then
 		recalculateTotal(nodeChar);
 	end
 end
@@ -246,7 +246,8 @@ function onCombatantTotalHpChanged(nodeHP)
 	end
 
 	local nodeChar = nodeHP.getChild("..");
-	if not ActorManager.isPC() then
+	Debug.chat(ActorManager.resolveActor(nodeChar))
+	if not ActorManager.isPC(nodeChar) then
 		recalculateAdjust(nodeChar);
 	end
 end
@@ -402,7 +403,8 @@ function recalculateBase(nodeChar)
 		end
 	end
 
-	DB.setValue(nodeChar, "hp.base", "number", nSum);
+	local fields = getHealthFields(nodeChar);
+	DB.setValue(nodeChar, fields.base, "number", nSum);
 	recalculateTotal(nodeChar);
 	endCalculating();
 	return nSum;
