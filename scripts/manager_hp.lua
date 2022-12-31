@@ -13,7 +13,7 @@ local onImportFileSelectionOriginal;
 local bAddingCharacter = false;
 local nodeAddedCharacter;
 
-local bAddingInfo = false;
+local nCalculations = 0;
 
 local pcFields = {
 	adjust = "hp.adjust",
@@ -44,9 +44,6 @@ function onInit()
 		resetHealthOriginal = CharManager.resetHealth;
 		CharManager.resetHealth = resetHealth;
 
-		addInfoDBOriginal = CharManager.addInfoDB;
-		CharManager.addInfoDB = addInfoDB;
-
 		addPregenCharOriginal = CampaignDataManager2.addPregenChar;
 		CampaignDataManager2.addPregenChar = addPregenChar;
 
@@ -61,6 +58,17 @@ function onInit()
 		DB.addHandler("charsheet.*.featlist.*.hpadd", "onUpdate", onAbilityHPChanged);
 		DB.addHandler("charsheet.*.featurelist.*.hpadd", "onUpdate", onAbilityHPChanged);
 		DB.addHandler("charsheet.*.traitlist.*.hpadd", "onUpdate", onAbilityHPChanged);
+		DB.addHandler("charsheet.*.abilities.constitution.bonus", "onUpdate", onConstitutionChanged);
+
+		DB.addHandler("charsheet.*.hp.base", "onUpdate", onCharsheetBaseHpChanged);
+		DB.addHandler("charsheet.*.hp.adjust", "onUpdate", onCharsheetAdjustHpChanged);
+		DB.addHandler("charsheet.*.hp.total", "onUpdate", onCharsheetTotalHpChanged);
+		DB.addHandler("charsheet.*.hp.peasant", "onUpdate", onPeasantHpChanged);
+
+		DB.addHandler(CombatManager.CT_COMBATANT_PATH .. ".hp", "onUpdate", onCombatantBaseHpChanged);
+		DB.addHandler(CombatManager.CT_COMBATANT_PATH .. ".hpadjust", "onUpdate", onCombatantAdjustHpChanged);
+		DB.addHandler(CombatManager.CT_COMBATANT_PATH .. ".hptotal", "onUpdate", onCombatantTotalHpChanged);
+
 		DB.addHandler(CombatManager.CT_COMBATANT_PATH .. ".effects", "onChildUpdate", onCombatantEffectUpdated);
 
 		initializeTotalHitPoints()
@@ -80,6 +88,7 @@ function onClose()
 	DB.removeHandler("charsheet.*.featlist.*.hpadd", "onUpdate", onAbilityHPChanged);
 	DB.removeHandler("charsheet.*.featurelist.*.hpadd", "onUpdate", onAbilityHPChanged);
 	DB.removeHandler("charsheet.*.traitlist.*.hpadd", "onUpdate", onAbilityHPChanged);
+	DB.removeHandler("charsheet.*.hp.peasant", "onUpdate", onPeasantHpChanged);
 	DB.removeHandler(CombatManager.CT_COMBATANT_PATH .. ".effects", "onChildUpdate", onCombatantEffectUpdated);
 end
 
@@ -90,22 +99,6 @@ function resetHealth(nodeChar, bLong)
 		DB.setValue(nodeChar, "hp.adjust", "number", 0);
 		recalculateTotal(nodeChar);
 	end
-end
-
-function addInfoDB(nodeChar, sClass, sRecord)
-	bAddingInfo = true;
-
-	local nAdjustHP = DB.getValue(nodeChar, "hp.adjust", 0);
-	local nInitialHP = DB.getValue(nodeChar, "hp.total", 0);
-	addInfoDBOriginal(nodeChar, sClass, sRecord);
-	local nUpdatedHp = DB.getValue(nodeChar, "hp.total", 0);
-
-	if nInitialHP ~= nUpdatedHp then
-		DB.setValue(nodeChar, "hp.adjust", "number", nAdjustHP);
-		recalculateBase(nodeChar);
-	end
-
-	bAddingInfo = false;
 end
 
 function addPregenChar(nodeSource)
@@ -147,49 +140,32 @@ function onClassDeleted(nodeClasses)
 end
 
 function onHitDiceChanged(nodeHD)
-	if bAddingCharacter then
+	if isCalculating() then
 		return;
 	end
 
 	local nodeClass = nodeHD.getParent();
 	local nodeChar = nodeClass.getChild("...");
-	local bFirstLevel = DB.getValue(nodeChar, "hp.base", 0) == 0;
-	if bFirstLevel then
-		local nValue = getHpRoll(nodeClass, true, 1);
+	local bFirstLevel = DB.getValue(nodeChar, "level", 1) == 1;
+	if DB.getValue(nodeClass, "level", 0) ~= DB.getChildCount(nodeClass, "rolls") then
+		local nValue = getHpRoll(nodeClass, bFirstLevel, 1);
 		DB.setValue(nodeClass, getRollNodePath(1), "number", nValue);
 	end
 end
 
 function onLevelChanged(nodeLevel)
-	if bAddingCharacter then
-		return;
-	end
-
-	local nOffset = -1;
 	local nodeClass = nodeLevel.getParent();
 	local nodeChar = nodeClass.getChild("...");
 	local nLevel = nodeLevel.getValue();
-	if not bAddingInfo then
-		nOffset = DB.getChildCount(nodeClass, "rolls") - nLevel;
-	end
+	local nOffset = DB.getChildCount(nodeClass, "rolls") - nLevel;
 
-	local bFirstLevel = DB.getValue(nodeChar, "hp.base", 0) == 0;
 	if nOffset > 0 then
-		for i=nLevel+1,nLevel+nOffset do
-			DB.deleteNode(nodeClass.getPath(getRollNodePath(i)))
-			DB.deleteNode(nodeChar.getPath("hp.discrepancy"));
-		end
+		removeRolls(nodeChar, nodeClass, nLevel);
 	else
-		for i=nLevel+nOffset+1, nLevel do
-			local nValue = getHpRoll(nodeClass, bFirstLevel, i);
-			bFirstLevel = false;
-			if nValue > 0 then
-				DB.setValue(nodeClass, getRollNodePath(i), "number", nValue);
-			end
-		end
+		addRolls(nodeChar, nodeClass, nLevel);
 	end
 
-	if not bAddingInfo then
+	if not isCalculating() then
 		recalculateBase(nodeChar);
 	end
 end
@@ -203,6 +179,77 @@ end
 function onAbilityHPChanged(nodeHP)
 	local nodeChar = nodeHP.getChild("....");
 	recalculateBase(nodeChar);
+end
+
+function onConstitutionChanged(nodeBonus)
+	local nodeChar = nodeBonus.getChild("....");
+	recalculateBase(nodeChar);
+end
+
+function onCharsheetBaseHpChanged(nodeHP)
+	if isCalculating() then
+		return;
+	end
+
+	local nodeChar = nodeHP.getChild("...");
+	recalculateTotal(nodeChar);
+end
+
+function onCharsheetAdjustHpChanged(nodeHP)
+	if isCalculating() then
+		return;
+	end
+
+	local nodeChar = nodeHP.getChild("...");
+	recalculateTotal(nodeChar);
+end
+
+function onCharsheetTotalHpChanged(nodeHP)
+	if isCalculating() then
+		return;
+	end
+
+	local nodeChar = nodeHP.getChild("...");
+	recalculateAdjust(nodeChar);
+end
+
+function onPeasantHpChanged(nodeHP)
+	local nodeChar = nodeHP.getChild("...");
+	recalculateBase(nodeChar);
+end
+
+function onCombatantBaseHpChanged(nodeHP)
+	if isCalculating() then
+		return;
+	end
+
+	local nodeChar = nodeHP.getChild("..");
+	if not ActorManager.isPC(nodeChar) then
+		recalculateTotal(nodeChar);
+	end
+end
+
+function onCombatantAdjustHpChanged(nodeHP)
+	if isCalculating() then
+		return;
+	end
+
+	local nodeChar = nodeHP.getChild("..");
+	if not ActorManager.isPC(nodeChar) then
+		recalculateTotal(nodeChar);
+	end
+end
+
+function onCombatantTotalHpChanged(nodeHP)
+	if isCalculating() then
+		return;
+	end
+
+	local nodeChar = nodeHP.getChild("..");
+	Debug.chat(ActorManager.resolveActor(nodeChar))
+	if not ActorManager.isPC(nodeChar) then
+		recalculateAdjust(nodeChar);
+	end
 end
 
 function onCombatantEffectUpdated(nodeEffectList)
@@ -305,7 +352,20 @@ function initializeTotalHitPoints()
 	end
 end
 
+function beginCalculating()
+	nCalculations = nCalculations + 1;
+end
+
+function endCalculating()
+	nCalculations = nCalculations - 1;
+end
+
+function isCalculating()
+	return nCalculations ~= 0;
+end
+
 function recalculateTotal(nodeChar)
+	beginCalculating();
 	local fields = getHealthFields(nodeChar);
 	local nBaseHP = DB.getValue(nodeChar, fields.base, 0);
 	local nAdjustHP = DB.getValue(nodeChar, fields.adjust, 0);
@@ -313,10 +373,12 @@ function recalculateTotal(nodeChar)
 	local nEffectHP = getEffectAdjustment(nodeChar);
 	local nTotal = nBaseHP + nAdjustHP + nEffectHP + nConAdjustment;
 	DB.setValue(nodeChar, fields.total, "number", nTotal);
+	endCalculating();
 	return nTotal;
 end
 
 function recalculateAdjust(nodeChar)
+	beginCalculating();
 	local fields = getHealthFields(nodeChar);
 	local nTotalHP = DB.getValue(nodeChar, fields.total, 0);
 	local nBaseHP = DB.getValue(nodeChar, fields.base, 0);
@@ -324,13 +386,16 @@ function recalculateAdjust(nodeChar)
 	local nEffectHP = getEffectAdjustment(nodeChar);
 	local nAdjust = nTotalHP - nBaseHP - nEffectHP - nConAdjustment;
 	DB.setValue(nodeChar, fields.adjust, "number", nAdjust);
+	endCalculating();
 	return nAdjust;
 end
 
 function recalculateBase(nodeChar)
+	beginCalculating();
 	local nConBonus = DB.getValue(nodeChar, "abilities.constitution.bonus", 0);
 	local nMiscCharBonus = getMiscellaneousCharacterHpBonus(nodeChar);
 	local nSum = DB.getValue(nodeChar, "hp.discrepancy", 0);
+	nSum = nSum + getPeasantHp(nodeChar);
 	for _,nodeClass in pairs(DB.getChildren(nodeChar, "classes")) do
 		local nMiscClassBonus = getMiscellaneousClassHpBonus(nodeChar, nodeClass);
 		for _,nodeRoll in pairs(DB.getChildren(nodeClass, "rolls")) do
@@ -338,8 +403,10 @@ function recalculateBase(nodeChar)
 		end
 	end
 
-	DB.setValue(nodeChar, "hp.base", "number", nSum);
+	local fields = getHealthFields(nodeChar);
+	DB.setValue(nodeChar, fields.base, "number", nSum);
 	recalculateTotal(nodeChar);
+	endCalculating();
 	return nSum;
 end
 
@@ -360,6 +427,14 @@ end
 function getEffectAdjustment(nodeChar)
 	local nMod = EffectManager5E.getEffectsBonus(nodeChar, "MAXHP", true);
 	return nMod;
+end
+
+function getPeasantHp(nodeChar)
+	local result = 0;
+	if PeasantManager and PeasantManager.isPeasant(nodeChar) then
+		result = DB.getValue(nodeChar, "hp.peasant", 0);
+	end
+	return result;
 end
 
 function getTotalLevel(nodeChar)
@@ -428,16 +503,46 @@ function getAverageHp(nHDMult, nHDSides)
 	return math.floor(((nHDMult * (nHDSides + 1)) / 2) + 0.5);
 end
 
+function removeRolls(nodeChar, nodeClass, nCharLevel)
+	for _,nodeRoll in pairs(DB.getChildren(nodeClass, "rolls")) do
+		local nRollLevel = getRollNodeLevel(nodeRoll);
+		if nRollLevel > nCharLevel then
+			nodeRoll.delete();
+		end
+	end
+	DB.deleteNode(nodeChar.getPath("hp.discrepancy"));
+end
+
+function addRolls(nodeChar, nodeClass, nCharLevel)
+	local tExisting = {}
+	for _,nodeRoll in pairs(DB.getChildren(nodeClass, "rolls")) do
+		local nRollLevel = getRollNodeLevel(nodeRoll);
+		tExisting[nRollLevel] = true;
+	end
+
+	local bFirstLevel = DB.getValue(nodeChar, "level", 0) == 0;
+	for nLevel = 1, nCharLevel do
+		if not tExisting[nLevel] then
+			local nValue = getHpRoll(nodeClass, bFirstLevel, nLevel);
+			bFirstLevel = false;
+			if nValue > 0 then
+				DB.setValue(nodeClass, getRollNodePath(nLevel), "number", nValue);
+			end
+		end
+	end
+	DB.deleteNode(nodeChar.getPath("hp.discrepancy"));
+end
+
 function getHpRoll(nodeClass, bFirstLevel, nClassLevel)
 	local nValue = 0;
 	local aDice = DB.getValue(nodeClass, "hddie");
 	if type(aDice) == "table" then
 		if bFirstLevel then
-			nValue = DiceManager.evalDice(aDice, 0 , true);
+			nValue = DiceManager.evalDice(aDice, 0, true);
 		elseif OptionsManager.getOption("HRHP") == "roll" then
 			notifyRollHp(nodeClass, nClassLevel);
 		else
-			nValue = DiceManager.evalDice(aDice, 0 , true);
+			nValue = DiceManager.evalDice(aDice, 0, true);
 			nValue = math.ceil((nValue + table.getn(aDice)) / 2);
 		end
 	end
@@ -446,6 +551,12 @@ end
 
 function getRollNodePath(nLevel)
 	return string.format("rolls.lvl-%03d", nLevel);
+end
+
+function getRollNodeLevel(nodeRoll)
+	local sName = nodeRoll.getName();
+	local sLevel = sName:match("(%d+)");
+	return tonumber(sLevel) or 0;
 end
 
 function notifyRollHp(nodeClass, nClassLevel)

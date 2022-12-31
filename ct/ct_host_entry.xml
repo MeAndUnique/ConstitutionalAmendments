@@ -2,19 +2,14 @@
 <root>
 	<windowclass name="ct_entry" merge="join">
 		<sheetdata>
+			<hnx name="hp" />
+			<hnx name="hpadjust" />
+
 			<!-- Shift HP and Temp right, move Wnd to where HP was -->
 			<number_ct_crosslink name="hptemp" insertbefore="initresult">
 				<tabtarget prev="hptemp" next="strength" />
 			</number_ct_crosslink>
 			<number_ct_crosslink name="hptotal" insertbefore="initresult">
-				<script>
-					function onValueChanged()
-						if super and super.onValueChanged then
-							super.onValueChanged();
-						end
-						HpManager.recalculateAdjust(window.link.getTargetDatabaseNode());
-					end
-				</script>
 				<tabtarget prev="wounds" next="hptemp" />
 			</number_ct_crosslink>
 			

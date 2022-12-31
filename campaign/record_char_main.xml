@@ -23,15 +23,6 @@
 			end
 		</script>
 		<sheetdata>
-			<number_charabilityscore name="constitution">
-				<script>
-					function onValueChanged()
-						super.onValueChanged();
-						HpManager.recalculateBase(window.getDatabaseNode());
-					end
-				</script>
-			</number_charabilityscore>
-
 			<label_charframetop name="healthtitle">
 				<anchored height="20">
 					<top anchor="bottom" offset="-120" />
@@ -68,31 +59,21 @@
 				<anchored to="label_hd" position="righthigh" offset="190,0" />
 			</button_charhealthcalc>
 
-			<basicsmartnumber name="adjhp">
+			<basicnumber name="adjhp" source="hp.adjust">
 				<anchored to="temphp" position="righthigh" offset="15,0" width="40" height="30" />
-				<stateframe>
-					<drophilight name="fieldfocusplus" />
-				</stateframe>
-				<source>hp.adjust</source>
 				<font>reference-b-large</font>
 				<color>8030FF</color>
 				<description textres="hpadj" />
 				<hideonvalue>0</hideonvalue>
 				<script>
-					function onUpdated(bUser, previousValue, newValue)
-						if bUser then
-							HpManager.recalculateTotal(window.getDatabaseNode());
-						end
-						window.onHealthChanged();
-					end
 					function onDrop(x, y, draginfo)
 						if draginfo.isType("number") then
 							setValue(getValue() + draginfo.getNumberData());
-							return true;
 						end
+						return true;
 					end
 				</script>
-			</basicsmartnumber>
+			</basicnumber>
 			
 			<label_charfieldtop name="adjhp_label">
 				<anchored to="adjhp" offset="5,15" />

@@ -58,21 +58,14 @@
 				<anchored to="hptemp" position="righthigh" offset="28,0" height="20" />
 				<static textres="npc_label_hpadjust" />
 			</label>
-			<basicsmartnumber name="hpadjust" insertbefore="speed_label">
+			<basicnumber name="hpadjust" insertbefore="speed_label">
 				<anchored to="hpadjust_label" position="righthigh" offset="10,0" width="40" height="20" />
 				<stateframe>
 					<drophilight name="fieldfocusplus" />
 				</stateframe>
-				<source>hpadjust</source>
 				<color>8030FF</color>
 				<hideonvalue>0</hideonvalue>
 				<script>
-					function onUpdated(bUser, previousValue, newValue)
-						if bUser then
-							HpManager.recalculateTotal(window.getDatabaseNode());
-						end
-						window.onHealthChanged();
-					end
 					function onDrop(x, y, draginfo)
 						if draginfo.isType("number") then
 							setValue(getValue() + draginfo.getNumberData());
@@ -80,7 +73,7 @@
 						end
 					end
 				</script>
-			</basicsmartnumber>
+			</basicnumber>
 
 			<label_column name="hd_label" insertbefore="speed_label">
 				<static textres="hitdice" />
