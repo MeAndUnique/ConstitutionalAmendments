@@ -33,6 +33,7 @@ local npcFields = {
 };
 
 function onInit()
+	Debug.console("GitHub cleaning test.");
 	OOBManager.registerOOBMsgHandler(OOB_MSGTYPE_ROLLHP, handleRollHp);
 	ActionsManager.registerResultHandler("hp", onHpRoll);
 
@@ -246,7 +247,6 @@ function onCombatantTotalHpChanged(nodeHP)
 	end
 
 	local nodeChar = nodeHP.getChild("..");
-	Debug.chat(ActorManager.resolveActor(nodeChar))
 	if not ActorManager.isPC(nodeChar) then
 		recalculateAdjust(nodeChar);
 	end

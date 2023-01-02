@@ -76,7 +76,9 @@ function applyDamage(rSource, rTarget, rRoll)
 		end
 	end
 
-	return applyDamageOriginal(rSource, rTarget, rRoll);
+	EffectManager.startDelayedUpdates();
+	applyDamageOriginal(rSource, rTarget, rRoll);
+	EffectManager.endDelayedUpdates();
 end
 
 function checkForTransfer(decodeResult)
@@ -153,7 +155,7 @@ function messageDamage(rSource, rTarget, rRoll)
 	if rRoll.sType == "damage" then
 		-- Nothing to resolve for shared damage
 		if not string.match(rRoll.sDesc, "%[SHARED%]") then
-			resolveDamage(rSource, rTarget, rRoll, rComplexDamage);
+			resolveDamage(rTarget, rRoll, rComplexDamage);
 		end
 	elseif rRoll.sType == "recovery" then
 		rRoll.sDamageText = rRoll.sDamageText:gsub("%[HEAL", "[RECOVERY")
@@ -211,7 +213,7 @@ function messageDamage(rSource, rTarget, rRoll)
 	end
 end
 
-function resolveDamage(rSource, rTarget, rRoll, rComplexDamage)
+function resolveDamage(rTarget, rRoll, rComplexDamage)
 	local _,nodeTarget = ActorManager.getTypeAndNode(rTarget);
 	local nMaxTotal = 0;
 	for sTypes,nDamage in pairs(rRoll.aDamageTypes or{}) do
@@ -291,10 +293,10 @@ function resolveMaxDamage(nMax, rRoll, nodeTarget)
 
 	local nAdjust = DB.getValue(nodeTarget, fields.adjust, 0) - nMax;
 	DB.setValue(nodeTarget, fields.adjust, "number", nAdjust);
-	HpManager.recalculateTotal(nodeTarget);
 
-	local nTotal = DB.getValue(nodeTarget, fields.total, 0);
+	local nTotal = HpManager.recalculateTotal(nodeTarget);
 	if nTotal <= 0 then
+		HpManager.beginCalculating();
 		if not string.match(rRoll.sResults, "%[INSTANT DEATH%]") then
 			rRoll.sResults = rRoll.sResults .. " [INSTANT DEATH]";
 		end
@@ -302,6 +304,7 @@ function resolveMaxDamage(nMax, rRoll, nodeTarget)
 		DB.setValue(nodeTarget, fields.total, "number", 0);
 		DB.setValue(nodeTarget, fields.adjust, "number", nAdjust);
 		DB.setValue(nodeTarget, fields.deathsavefail, "number", 3);
+		HpManager.endCalculating();
 	end
 end
 

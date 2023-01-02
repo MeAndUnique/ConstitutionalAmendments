@@ -26,6 +26,12 @@ jobs:
         find: "dev_version"
         replace: ${{github.ref_name}}
 
+    - name: Remove Debug Lines
+      uses: jacobtomlinson/gha-find-replace@v2
+      with:
+        find: "^\w*Debug.+[\r\n]+"
+        replace: ""
+
     - name: Archive Release
       uses: thedoctor0/zip-release@master
       with:

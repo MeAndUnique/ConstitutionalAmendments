@@ -17,7 +17,7 @@ end
 function helperAddClassHP(rAdd)
 	HpManager.beginCalculating();
 	helperAddClassHPOriginal(rAdd);
-	HpManager.recalculateBase(rAdd.nodeSource);
+	HpManager.recalculateBase(rAdd.nodeChar);
 	HpManager.endCalculating();
 end
 
