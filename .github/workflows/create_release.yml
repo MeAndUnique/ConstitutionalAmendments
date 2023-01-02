@@ -29,8 +29,8 @@ jobs:
     - name: Remove Debug Lines
       uses: jacobtomlinson/gha-find-replace@v2
       with:
-        find: "^\\w*Debug.+[\\r\\n]+"
-        replace: ""
+        find: (?m)\n^\s*Debug.+\n
+        replace: "\n"
 
     - name: Archive Release
       uses: thedoctor0/zip-release@master
