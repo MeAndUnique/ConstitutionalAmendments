@@ -33,7 +33,6 @@ local npcFields = {
 };
 
 function onInit()
-	Debug.console("GitHub cleaning test.");
 	OOBManager.registerOOBMsgHandler(OOB_MSGTYPE_ROLLHP, handleRollHp);
 	ActionsManager.registerResultHandler("hp", onHpRoll);
 
@@ -141,10 +140,6 @@ function onClassDeleted(nodeClasses)
 end
 
 function onHitDiceChanged(nodeHD)
-	if isCalculating() then
-		return;
-	end
-
 	local nodeClass = nodeHD.getParent();
 	local nodeChar = nodeClass.getChild("...");
 	local bFirstLevel = DB.getValue(nodeChar, "level", 1) == 1;
