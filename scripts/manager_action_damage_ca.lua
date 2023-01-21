@@ -316,6 +316,7 @@ function resolveShared(rTarget, rComplexDamage, bIsHeal)
 		if (nActive == 1) then
 			local sLabel = DB.getValue(nodeEffect, "label", "");
 			local aEffectComps = EffectManager.parseEffect(sLabel);
+			local aTargetConditionComps = {};
 			for i = 1, #aEffectComps do
 				local sCheckFor = "SHAREDMG";
 				if bIsHeal then
@@ -323,14 +324,26 @@ function resolveShared(rTarget, rComplexDamage, bIsHeal)
 				end
 
 				local rEffectComp = EffectManager5E.parseEffectComp(aEffectComps[i]);
-				if rEffectComp.type == sCheckFor then
-					rComplexDamage.rSharingTargets = rComplexDamage.rSharingTargets or {};
-					for _,sSharingTarget in ipairs(getSharingTargets(sTargetPath, nodeEffect)) do
-						rComplexDamage.rSharingTargets[sSharingTarget]
-							= (rComplexDamage.rSharingTargets[sSharingTarget] or 0) + rEffectComp.mod;
+				if rEffectComp.type == "IF" then
+					if not EffectManager5E.checkConditional(rTarget, nodeEffect, rEffectComp.remainder) then
+						break;
 					end
+				elseif rEffectComp.type == "IFT" then
+					table.insert(aTargetConditionComps, rEffectComp);
+				elseif rEffectComp.type == sCheckFor then
+					configureSharingTargets(rComplexDamage, rTarget, sTargetPath, nodeEffect, rEffectComp, aTargetConditionComps);
 				end
 			end
+		end
+	end
+end
+
+function configureSharingTargets(rComplexDamage, rTarget, sTargetPath, nodeEffect, rEffectComp, aTargetConditionComps)
+	rComplexDamage.rSharingTargets = rComplexDamage.rSharingTargets or {};
+	for _,sSharingTarget in ipairs(getSharingTargets(sTargetPath, nodeEffect)) do
+		if checkTargetConditionals(aTargetConditionComps, rTarget, nodeEffect, sSharingTarget) then
+			rComplexDamage.rSharingTargets[sSharingTarget]
+			= (rComplexDamage.rSharingTargets[sSharingTarget] or 0) + rEffectComp.mod;
 		end
 	end
 end
@@ -350,4 +363,13 @@ function tryAddSharingTarget(aTargets, sActorPath, sTargetPath)
 	if ((sTargetPath or "") ~= "") and (sTargetPath ~= sActorPath) then
 		table.insert(aTargets, sTargetPath);
 	end
+end
+
+function checkTargetConditionals(aTargetConditionComps, rTarget, nodeEffect, sSharingTarget)
+	for _,rTargetConditionComp in ipairs(aTargetConditionComps) do
+		if not EffectManager5E.checkConditional(rTarget, nodeEffect, rTargetConditionComp.remainder, sSharingTarget) then
+			return false;
+		end
+	end
+	return true;
 end
