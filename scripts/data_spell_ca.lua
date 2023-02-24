@@ -8,7 +8,7 @@ function onInit()
 	-- DataSpell.parsedata["aid"] = {
 	-- 	{ type = "heal", subtype = "max", clauses = { { bonus = 5 } } },
 	-- };
-	-- DataSpell.parsedata["heroes' feat"] = {
+	-- DataSpell.parsedata["heroes' feast"] = {
 	-- 	{ type = "effect", sName = "Heroes' Feast; IMMUNE: poison,poisoned,frightened; ADVSAV: wisdom", nDuration = 24, sUnits = "hour" },
 	-- 	{ type = "heal", subtype = "max", clauses = { { dice = { "2d10" } } } },
 	-- };
