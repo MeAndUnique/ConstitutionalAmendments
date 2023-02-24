@@ -74,7 +74,7 @@ function resetHealth(nodeChar, bLong)
 
 	-- Reset half or quarter of hit dice (assume biggest hit dice selected first)
 	if bResetHalfHitDice or bResetQuarterHitDice then
-		local nHDUsed, nHDTotal = CharManager.getClassHDUsage(nodeChar);
+		local nHDUsed, nHDTotal = CharClassManager.getCharClassHDUsage(nodeChar);
 		if nHDUsed > 0 then
 			local nHDRecovery;
 			if bResetQuarterHitDice then

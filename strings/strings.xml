@@ -6,7 +6,7 @@
 	<string name="option_val_hp_wounds">Wounds</string>
 	<string name="option_val_hp_current">Current HP</string>
 	<string name="option_label_LRAD">PC: Clear HP Adjust on Long Rest</string>
-	<string name="option_label_HRHP">PC: HP on level up</string>
+	<string name="option_label_HRHP">PC: HP on Level Up</string>
 	<string name="option_val_hp_average">Average</string>
 	<string name="option_val_hp_roll">Roll</string>
 	<string name="option_label_NPCHF">NPC: Show Extra Health Fields</string>
