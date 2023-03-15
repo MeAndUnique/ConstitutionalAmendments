@@ -1,13 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-	<windowclass name="power_heal_editor_main" merge="join">
+	<windowclass name="power_action_editor_heal" merge="join">
 		<sheetdata>
 			<button_stringcycler name="healtype">
-				<parameters>
+				<script>
+					function onInit()
+						parameters[1].labelsres[1] = parameters[1].labelsres[1] .. "|power_label_healtypemax";
+						parameters[1].values[1] = parameters[1].values[1] .. "|max";
+						if super and super.onInit then
+							super.onInit();
+						end
+					end
+				</script>
+				<!-- <parameters>
 					<defaultlabelres>power_label_healtypecur</defaultlabelres>
 					<labelsres>power_label_healtypetemp|power_label_healtypemax</labelsres>
 					<values>temp|max</values>
-				</parameters>
+				</parameters> -->
 			</button_stringcycler>
 		</sheetdata>
 	</windowclass>

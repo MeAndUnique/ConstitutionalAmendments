@@ -1,7 +1,8 @@
 # Constitutional Amendments
 ## Features
 * Adds tracking of individual values for HP gained at each level, automated modifications of HP based on constitution changes, and tracking adjustments to maximum HP.
-
+ * Values can be seen and edited in the Class & Level window.
+ * Manually changed class levels take effect after the control loses focus.
 * Added an option to indicate whether average hitpoints should be added when level or if they should be rolled.
 * Added an option to toggle between displaying Wounds or Current Hit Points.
   * Inspired by the [Current HP](https://www.fantasygrounds.com/forums/showthread.php?44140-Current-HP-Extension-for-5E-Ruleset) extension created by Tielc and zuilin.
