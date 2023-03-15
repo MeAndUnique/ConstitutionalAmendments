@@ -89,6 +89,9 @@
 			end
 		</script>
 		<sheetdata>
+			<basicnumber name="level">
+				<delaykeyupdate />
+			</basicnumber>
 			<string_textlistitem name="name">
 				<anchored>
 					<left offset="30" />
