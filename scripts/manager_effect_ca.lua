@@ -47,11 +47,13 @@ end
 
 function onEffectRollEncode(rRoll, rEffect)
 	encodeEffectOriginal(rRoll, rEffect);
+	rRoll.nDuration = rEffect.nDuration;
 	local aEffectComps = EffectManager.parseEffect(rEffect.sName);
 	for _,sEffectComp in ipairs(aEffectComps) do
 		local rEffectComp = EffectManager5E.parseEffectComp(sEffectComp);
 		if rEffectComp.type == "MAXHP" then
 			rRoll.nMod = rRoll.nMod + rEffectComp.mod;
+			rRoll.aDice.nMod = (rRoll.aDice.nMod or 0) + rEffectComp.mod;
 			for _,die in ipairs(rEffectComp.dice) do
 				table.insert(rRoll.aDice, die);
 			end
@@ -71,10 +73,10 @@ function onEffectRollDecode(rRoll, rEffect)
 				nMainDieIndex = nMainDieIndex + 1;
 				local nResult = (rRoll.aDice[nMainDieIndex].result or 0);
 				nMax = nMax + nResult;
-				rEffect.nDuration = rEffect.nDuration - nResult;
 			end
 			aEffectComps[nEffectIndex] = "MAXHP: " .. nMax;
 		end
 	end
+	rEffect.nDuration = rRoll.nDuration;
 	rEffect.sName = EffectManager.rebuildParsedEffect(aEffectComps);
 end
