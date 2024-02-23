@@ -17,8 +17,7 @@ function modRecovery(rSource, rTarget, rRoll)
 	modRecoveryOriginal(rSource, rTarget, rRoll);
 
 	if rSource then
-		local bEffect = false;
-		aDice, nMod, nHDEffects = EffectManager5E.getEffectsBonus(rSource, "HD");
+		local aDice, nMod, nHDEffects = EffectManager5E.getEffectsBonus(rSource, "HD");
 		if nHDEffects > 0 then
 			rRoll.sDesc = updateEffectsTag(rRoll.sDesc, aDice, nMod);
 
