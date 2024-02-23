@@ -37,6 +37,7 @@
 * Support has been added the following effects which apply to rolling hit dice to recover hp:
   * **HD: x max** - Adds x when the hit die is rolled, where x can be dice and numbers. The descriptor max will maximize the die roll.
   * **HDMULT: n** - Causes the result of a hit die roll to be multiplied by n, where n is any number. Note: extra dice add by HD effects are not multiplied, but extra flat numbers are.
+  * **HDRECOVERY: n** - N additional hit die will be recovered on long rest.
 
 * Abilities, Class Features, Ancestral Traits, and Feats can all be configured to grant hit points (as the Tough feat, for example). Simply right click on the name of the ability's window to enable and set the desired value in the field that is shown.
 
