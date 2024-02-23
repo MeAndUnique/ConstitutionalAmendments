@@ -1,5 +1,5 @@
--- 
--- Please see the license file included with this distribution for 
+--
+-- Please see the license file included with this distribution for
 -- attribution and copyright information.
 --
 
@@ -21,7 +21,7 @@ function modRecovery(rSource, rTarget, rRoll)
 		aDice, nMod, nHDEffects = EffectManager5E.getEffectsBonus(rSource, "HD");
 		if nHDEffects > 0 then
 			rRoll.sDesc = updateEffectsTag(rRoll.sDesc, aDice, nMod);
-			
+
 			for _,vDie in ipairs(aDice) do
 				if vDie:sub(1,1) == "-" then
 					table.insert(rRoll.aDice, "-p" .. vDie:sub(3));
@@ -30,6 +30,14 @@ function modRecovery(rSource, rTarget, rRoll)
 				end
 			end
 			rRoll.nMod = rRoll.nMod + nMod;
+		end
+		local tEffects = EffectManager5E.getEffectsByType(rSource, 'HD', {'max'});
+		for _,tEffect in pairs(tEffects) do
+			for _,remainder in pairs(tEffect.remainder) do
+				if remainder:lower() == 'max' then
+					rRoll.sDesc = rRoll.sDesc .. ' [MAX]';
+				end
+			end
 		end
 	end
 end
@@ -47,6 +55,40 @@ function onRecoveryRoll(rSource, rRoll)
 
 		rRoll.nMod = rRoll.nMod + nAdd;
 		rRoll.sDesc = updateEffectsTag(rRoll.sDesc, {}, nAdd);
+	end
+	maxRecovery(rRoll);
+end
+
+function maxRecovery(rRoll)
+	if rRoll.sDesc:match('%[MAX%]') then
+		for _, vDie in ipairs(rRoll.aDice) do
+			local sSign, sColor, sDieSides = vDie.type:match('^([%-%+]?)([dDrRgGbBpP])([%dF]+)');
+			if sDieSides then
+				local nResult;
+				if sDieSides == 'F' then
+					nResult = 1;
+				else
+					nResult = tonumber(sDieSides) or 0;
+				end
+
+				if sSign == '-' then
+					nResult = 0 - nResult;
+				end
+
+				vDie.result = nResult;
+				vDie.value = vDie.result;
+				if sColor == 'd' or sColor == 'D' then
+					if sSign == '-' then
+						vDie.type = '-b' .. sDieSides;
+					else
+						vDie.type = 'b' .. sDieSides;
+					end
+				end
+			end
+		end
+		if rRoll.aDice.expr then
+			rRoll.aDice.expr = nil;
+		end
 	end
 end
 
@@ -70,7 +112,7 @@ function updateEffectsTag(sDesc, aAddDice, nAddMod)
 	else
 		sEffects = "[" .. sTag .. "]";
 	end
-	
+
 	if nStart then
 		sDesc = sDesc:sub(1, nStart - 1) .. sEffects .. sDesc:sub(nEnd + 1, #sDesc);
 	else
