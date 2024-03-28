@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-	<windowclass name="ability_header" merge="join">
+	<windowclass name="reference_classability_header" merge="join">
 		<script file="campaign/scripts/granthpheader.lua" />
 		<sheetdata>
 			<basicnumber name="hpadd">
@@ -14,7 +14,7 @@
 					<top anchor="top" />
 					<right anchor="left" offset="-5" />
 				</anchored>
-				<icon>spell_heal</icon>
+				<icon>action_heal</icon>
 			</genericcontrol>
 		</sheetdata>
 	</windowclass>

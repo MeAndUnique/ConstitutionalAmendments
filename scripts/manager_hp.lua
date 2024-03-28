@@ -533,11 +533,11 @@ function getHpRoll(nodeClass, bFirstLevel, nClassLevel)
 	local aDice = DB.getValue(nodeClass, "hddie");
 	if type(aDice) == "table" then
 		if bFirstLevel then
-			nValue = DiceManager.evalDice(aDice, 0, true);
+			nValue = DiceManager.evalDice(aDice, 0, { bMax = true });
 		elseif OptionsManager.getOption("HRHP") == "roll" then
 			notifyRollHp(nodeClass, nClassLevel);
 		else
-			nValue = DiceManager.evalDice(aDice, 0, true);
+			nValue = DiceManager.evalDice(aDice, 0, { bMax = true });
 			nValue = math.ceil((nValue + table.getn(aDice)) / 2);
 		end
 	end
