@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- 
-  Please see the license.txt file included with this distribution for 
+<!--
+  Please see the license.txt file included with this distribution for
   attribution and copyright information.
 -->
 
@@ -49,7 +49,7 @@
 								setValue(getValue() + draginfo.getNumberData());
 							end
 						end
-						
+
 						return true;
 					end
 				</script>
@@ -90,7 +90,7 @@
 				<sortby><field>name</field></sortby>
 				<script>
 					function onInit()
-						registerMenuItem(Interface.getString("menu_reparse_hitdice"), "spell_heal", 3);
+						registerMenuItem(Interface.getString("menu_reparse_hitdice"), "action_heal", 3);
 					end
 					function onMenuSelection(selection)
 						if selection == 3 then
@@ -99,7 +99,7 @@
 					end
 				</script>
 			</windowlist>
-			
+
 			<stringcontrol name="deathsave_label">
 				<anchored to="hitdice" position="righthigh" offset="8,-5" width="65" />
 				<font>sheetlabelmini</font>
@@ -119,7 +119,7 @@
 					function onDragStart(button, x, y, draginfo)
 						return action(draginfo);
 					end
-					
+
 					function onButtonPress()
 						return action();
 					end
