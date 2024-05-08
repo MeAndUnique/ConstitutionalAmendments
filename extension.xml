@@ -34,7 +34,7 @@ Icons made by Smashicons from www.flaticon.com
 		<loadorder>140</loadorder>
 		<author>MeAndUnique-and-Tielc-and-Zuilin</author>
 		<description>Adds a number of quality of life features concerning HP.</description>
-		
+
 		<ruleset>
 			<name>5E</name>
 		</ruleset>
@@ -49,6 +49,7 @@ Icons made by Smashicons from www.flaticon.com
 		<script name="ActionDamageCA" file="scripts/manager_action_damage_ca.lua"/>
 		<script name="ActionHealCA" file="scripts/manager_action_heal_ca.lua"/>
 		<script name="ActionRecoveryCA" file="scripts/manager_action_recovery_ca.lua"/>
+		<script name="CharManagerCA" file="scripts/manager_char_ca.lua"/>
 		<script name="CharClassManagerCA" file="scripts/manager_char_class_ca.lua"/>
 		<script name="CharFeatManagerCA" file="scripts/manager_char_feat_ca.lua"/>
 		<script name="CharRacceManagerCA" file="scripts/manager_char_race_ca.lua"/>
@@ -69,7 +70,7 @@ Icons made by Smashicons from www.flaticon.com
 
 		<!-- updates the heal power window to support increasing max HP -->
 		<includefile source="campaign/record_power_roll.xml" />
-		
+
 		<!-- updates to to allow various features to grant hp -->
 		<includefile source="campaign/record_ability.xml" />
 		<includefile source="campaign/record_class.xml" />
