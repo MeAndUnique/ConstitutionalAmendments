@@ -30,11 +30,11 @@ function modRecovery(rSource, rTarget, rRoll)
 			end
 			rRoll.nMod = rRoll.nMod + nMod;
 		end
-		local tEffects = EffectManager5E.getEffectsByType(rSource, 'HD', {'max'});
+		local tEffects = EffectManager5E.getEffectsByType(rSource, "HD", {"max"});
 		for _,tEffect in pairs(tEffects) do
 			for _,remainder in pairs(tEffect.remainder) do
-				if remainder:lower() == 'max' then
-					rRoll.sDesc = rRoll.sDesc .. ' [MAX]';
+				if remainder:lower() == "max" then
+					rRoll.sDesc = rRoll.sDesc .. " [MAX]";
 				end
 			end
 		end

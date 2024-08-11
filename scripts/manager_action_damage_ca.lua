@@ -12,13 +12,13 @@ local messageDamageOriginal;
 local DAMAGE_RATE_PATTERN = "'(%d*%.?%d+)'";
 
 function onInit()
-	table.insert(DataCommon.dmgtypes, "max");
+	table.insert(DataCommon.dmgtypes, "maxhp");
 	table.insert(DataCommon.dmgtypes, "steal");
 	table.insert(DataCommon.dmgtypes, "hsteal");
 	table.insert(DataCommon.dmgtypes, "stealtemp");
 	table.insert(DataCommon.dmgtypes, "hstealtemp");
 	table.insert(DataCommon.dmgtypes, DAMAGE_RATE_PATTERN);
-	table.insert(DataCommon.specialdmgtypes, "max");
+	table.insert(DataCommon.specialdmgtypes, "maxhp");
 	table.insert(DataCommon.specialdmgtypes, "steal");
 	table.insert(DataCommon.specialdmgtypes, "hsteal");
 	table.insert(DataCommon.specialdmgtypes, "stealtemp");
@@ -67,7 +67,7 @@ function applyDamage(rSource, rTarget, rRoll)
 				rSource = rSwap;
 			end
 		elseif decodeResult.sType == "heal" then
-			if string.match(rRoll.sDesc, "%[HEAL") and string.match(rRoll.sDesc, "%[MAX%]") then
+			if string.match(rRoll.sDesc, "%[HEAL") and  rRoll.sSubtype == 'maxhp' then
 				applyMaxHeal(rTarget, rRoll.nTotal);
 			end
 		elseif decodeResult.sType == "recovery" and (sTargetNodeType ~= "pc") then
@@ -143,7 +143,7 @@ end
 
 function decodeDamageText(nDamage, sDamageDesc)
 	local decodeResult = decodeDamageTextOriginal(nDamage, sDamageDesc);
-	if string.match(sDamageDesc, "%[HEAL") and string.match(sDamageDesc, "%[MAX%]") then
+	if string.match(sDamageDesc, "%[HEAL") and string.match(sDamageDesc, "%[MAXHP%]") then
 		decodeResult.sTypeOutput = "Maximum hit points";
 	end
 	return decodeResult;
@@ -245,7 +245,7 @@ function resolveDamage(rTarget, rRoll, rComplexDamage)
 				bCheckTransfer = false;
 			end
 
-			if type == "max" then
+			if type == "maxhp" then
 				nMax = 1;
 				bCheckMax = true;
 			elseif type == "steal" then

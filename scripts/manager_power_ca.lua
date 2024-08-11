@@ -1,5 +1,5 @@
--- 
--- Please see the license file included with this distribution for 
+--
+-- Please see the license file included with this distribution for
 -- attribution and copyright information.
 --
 
@@ -16,7 +16,7 @@ end
 
 function getPCPowerHealActionText(nodeAction)
 	local sHeal = getPCPowerHealActionTextOriginal(nodeAction);
-	if sHeal ~= "" and DB.getValue(nodeAction, "healtype", "") == "max" then
+	if sHeal ~= "" and DB.getValue(nodeAction, "healtype", "") == "maxhp" then
 		local nPos = string.find(sHeal, " %[SELF%]");
 		if nPos then
 			sHeal = sHeal:sub(1, nPos-1) .. " maximum" .. sHeal:sub(nPos);

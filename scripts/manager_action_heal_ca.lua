@@ -12,8 +12,8 @@ end
 
 function getRoll(rActor, rAction)
 	local rRoll = getRollOriginal(rActor, rAction);
-	if rAction.subtype == "max" then
-		rRoll.sDesc = rRoll.sDesc .. " [MAX]";
+	if rAction.subtype == "maxhp" then
+		rRoll.sSubtype = rAction.subtype
 	end
 	return rRoll;
 end

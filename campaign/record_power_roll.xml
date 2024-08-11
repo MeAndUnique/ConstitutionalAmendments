@@ -6,7 +6,7 @@
 				<script>
 					function onInit()
 						parameters[1].labelsres[1] = parameters[1].labelsres[1] .. "|power_label_healtypemax";
-						parameters[1].values[1] = parameters[1].values[1] .. "|max";
+						parameters[1].values[1] = parameters[1].values[1] .. "|maxhp";
 						if super and super.onInit then
 							super.onInit();
 						end

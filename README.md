@@ -14,7 +14,7 @@
 * Added fields to NPC sheets on the combat tracker for Wounds, Temp HP, HP Adjustment, Hit Dice, and Death Saves. And added an option to disable showing them.
 
 * Support has been added for six new special damage types:
-  * max: The target's maximum hitpoints are reduced by the damage dealt.
+  * maxhp: The target's maximum hitpoints are reduced by the damage dealt.
   * steal*: The attacker is healed for the damage dealt to the target.
   * hsteal: The attacker is healed for half of the damage dealt to the target.
   * stealtemp*: The attacker is gains temporary hitpoints equivalent to the damage dealt.

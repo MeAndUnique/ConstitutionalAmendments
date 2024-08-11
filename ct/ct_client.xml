@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-	<windowclass name="combattracker_client" merge="join">
+	<windowclass name="sub_ct_header_client" merge="join">
 		<script>
 			function onInit()
 				changeHealthDisplay();
@@ -21,12 +21,12 @@
 		</script>
 		<sheetdata>
 			<!-- Shift HP and Temp right, move Wnd to where HP was -->
-			<label_ct_right name="label_hp" insertbefore="label_wounds">
+			<label_ct_header_right name="label_hp" insertbefore="label_wounds">
 				<!-- Be more specific about Max HP -->
 				<static textres="ct_label_max" />
 				<tooltip textres="ct_tooltip_max" />
-			</label_ct_right>
-			<label_ct_right name="label_temp" insertbefore="label_wounds" />
+			</label_ct_header_right>
+			<label_ct_header_right name="label_temp" insertbefore="label_wounds" />
 		</sheetdata>
 	</windowclass>
 </root>

@@ -26,7 +26,7 @@
 	<string name="menu_reparse_hitdice">Reparse Hit Dice</string>
 
 	<string name="power_label_healtypecur">CUR</string>
-	<string name="power_label_healtypemax">MAX</string>
+	<string name="power_label_healtypemax">MAXHP</string>
 
 	<string name="hide_hp_header">Remove hitpoint adjustment</string>
 	<string name="show_hp_header">Configure hitpoint adjustment</string>
